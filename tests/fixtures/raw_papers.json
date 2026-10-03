@@ -1,0 +1,141 @@
+{
+  "meta": {
+    "source": "hand-written-fixture",
+    "is_fixture": true,
+    "fetched_at": "2024-01-01T00:00:00Z",
+    "api_key_used": false,
+    "note": "Test fixture: 6 synthetic papers about kelp aquaculture. Same shape as data/raw_papers.json."
+  },
+  "papers": {
+    "k1": {
+      "paperId": "k1",
+      "title": "Hydroculture for kelp",
+      "abstract": "We grow kelp in tanks using hydroculture.",
+      "year": 2019,
+      "venue": "Aquaculture Letters",
+      "authors": [{"authorId": "ka1", "name": "Aino"}],
+      "citationCount": 50,
+      "externalIds": {"DOI": "10.1/k1"},
+      "edges_fetched": true,
+      "references": {
+        "k2": {
+          "isInfluential": false,
+          "contexts": ["an early description of nori culture"],
+          "intents": ["background"]
+        }
+      },
+      "citations": {
+        "k3": {
+          "isInfluential": true,
+          "contexts": ["we scale this approach to open water"],
+          "intents": ["methodology"]
+        }
+      }
+    },
+    "k2": {
+      "paperId": "k2",
+      "title": "Nori cultivation basics",
+      "abstract": "An introduction to nori.",
+      "year": 2018,
+      "venue": "Journal of Algae",
+      "authors": [{"authorId": "ka2", "name": "Bo"}],
+      "citationCount": 10,
+      "externalIds": {},
+      "edges_fetched": true,
+      "references": {},
+      "citations": {
+        "k1": {
+          "isInfluential": false,
+          "contexts": ["see this primer"],
+          "intents": ["background"]
+        }
+      }
+    },
+    "k3": {
+      "paperId": "k3",
+      "title": "Scaling vertical farming of seaweed",
+      "abstract": "We scale vertical farming of kelp to commercial sites.",
+      "year": 2022,
+      "venue": "Marine Systems",
+      "authors": [{"authorId": "ka3", "name": "Cai"}],
+      "citationCount": 300,
+      "externalIds": {},
+      "edges_fetched": true,
+      "references": {
+        "k1": {
+          "isInfluential": true,
+          "contexts": ["we scale this approach to open water"],
+          "intents": ["methodology"]
+        },
+        "k4": {
+          "isInfluential": false,
+          "contexts": ["a common cause of nutrient collapse"],
+          "intents": ["background"]
+        }
+      },
+      "citations": {}
+    },
+    "k4": {
+      "paperId": "k4",
+      "title": "Nutrient collapse in closed systems",
+      "abstract": "Nutrient collapse limits yield in recirculating tanks.",
+      "year": 2021,
+      "venue": "Marine Systems",
+      "authors": [{"authorId": "ka4", "name": "Dee"}],
+      "citationCount": 20,
+      "externalIds": {},
+      "edges_fetched": true,
+      "references": {},
+      "citations": {
+        "k3": {
+          "isInfluential": false,
+          "contexts": ["a common cause of nutrient collapse"],
+          "intents": ["background"]
+        }
+      }
+    },
+    "k5": {
+      "paperId": "k5",
+      "title": "A survey of kelp aquaculture",
+      "abstract": "A survey covering kelp, nori and hydroculture.",
+      "year": 2023,
+      "venue": "Review of Aquaculture",
+      "authors": [{"authorId": "ka5", "name": "Eli"}],
+      "citationCount": 500,
+      "externalIds": {},
+      "edges_fetched": true,
+      "references": {
+        "k1": {
+          "isInfluential": true,
+          "contexts": ["the primary tank method"],
+          "intents": ["methodology"]
+        },
+        "k3": {
+          "isInfluential": true,
+          "contexts": ["recent scaling work"],
+          "intents": ["methodology"]
+        },
+        "k4": {
+          "isInfluential": true,
+          "contexts": ["the main failure mode"],
+          "intents": ["background"]
+        }
+      },
+      "citations": {}
+    },
+    "k6": {
+      "paperId": "k6",
+      "title": "Blight detection in nori farms",
+      "abstract": "Detecting blight early with cheap sensors.",
+      "year": 2020,
+      "venue": "Aquaculture Letters",
+      "authors": [{"authorId": "ka6", "name": "Fen"}],
+      "citationCount": 200,
+      "externalIds": {},
+      "edges_fetched": true,
+      "references": {},
+      "citations": {}
+    }
+  },
+  "neighbors": {}
+}

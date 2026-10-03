@@ -1,8 +1,11 @@
-"""Offline test for src/fetch_papers.py.
+"""Offline tests for src/fetch_papers.py.
 
 The real Semantic Scholar API cannot be hit from a test (anonymous rate limit),
-so this spins up a tiny local mock that mimics the four endpoints the fetcher
-uses, then drives the real fetch_papers code against it via S2_BASE_URL.
+so this spins up a tiny local mock of the four endpoints the fetcher uses, then
+drives the real fetch_papers code against it via S2_BASE_URL.
+
+The mock honours limit/offset on every endpoint, which is what makes the
+pagination tests meaningful.
 
 Run:  python -m pytest tests/test_fetch_papers.py -v
   or: python tests/test_fetch_papers.py
@@ -11,6 +14,7 @@ Run:  python -m pytest tests/test_fetch_papers.py -v
 from __future__ import annotations
 
 import json
+import os
 import sys
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -21,7 +25,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 import fetch_papers as fp  # noqa: E402
 
-# --- a fake corpus: 5 papers, A<->B<->C citation chain plus a lone paper ------
+# --- a fake corpus: 5 papers with a p1<-p3 / p2<-p1,p4 / p4<-p3 chain, plus
+# --- p6, a "hub" paper cited by 250 synthetic papers so paging is exercised.
 MOCK_PAPERS = {
     "p1": {"paperId": "p1", "title": "Retrieval Augmented Generation", "abstract": "RAG",
            "year": 2020, "venue": "NeurIPS", "authors": [{"authorId": "a1", "name": "A"}],
@@ -38,17 +43,28 @@ MOCK_PAPERS = {
     "p5": {"paperId": "p5", "title": "Unrelated Paper", "abstract": "nothing to do with rag",
            "year": 2019, "venue": "ICML", "authors": [{"authorId": "a5", "name": "E"}],
            "citationCount": 1, "externalIds": {}},
+    "p6": {"paperId": "p6", "title": "Hub Survey", "abstract": "a survey of surveys",
+           "year": 2022, "venue": "TACL", "authors": [{"authorId": "a6", "name": "F"}],
+           "citationCount": 250, "externalIds": {}},
 }
 
-# Which papers cite which, as cited_id -> [(citing_id, isInfluential)].
-CITES = {"p1": [("p3", True)], "p2": [("p1", False), ("p4", True)], "p4": [("p3", False)]}
+HUB = "p6"
+HUB_CITERS = 250
+SYNTH = {f"c{i}": {"paperId": f"c{i}", "title": f"Synthetic citer {i}", "year": 2021}
+         for i in range(1, HUB_CITERS + 1)}
 
+# Every paper the mock can serve as an edge endpoint.
+ALL_PAPERS = {**MOCK_PAPERS, **SYNTH}
 
-def citations_of(pid: str):
-    """(citing_id, isInfluential) pairs for papers that cite `pid`."""
-    return [(citing, infl)
-            for cited, lst in CITES.items()
-            for citing, infl in lst if cited == pid]
+# Which paper cites which, as citer_id -> [(cited_id, isInfluential)].
+CITES = {
+    "p1": [("p2", False)],
+    "p3": [("p1", True), ("p4", False)],
+    "p4": [("p2", True)],
+}
+# The hub's 250 citers live outside the corpus and are only ever edge endpoints.
+for _i in range(1, HUB_CITERS + 1):
+    CITES[f"c{_i}"] = [(HUB, False)]
 
 
 def references_of(pid: str):
@@ -56,8 +72,16 @@ def references_of(pid: str):
     return list(CITES.get(pid, []))
 
 
+def citations_of(pid: str):
+    """(citing_id, isInfluential) pairs for papers that cite `pid`."""
+    return [(citer, infl)
+            for citer, lst in CITES.items()
+            for cited, infl in lst if cited == pid]
+
+
 TOTAL_REFS = sum(len(references_of(p)) for p in MOCK_PAPERS)
 TOTAL_CITS = sum(len(citations_of(p)) for p in MOCK_PAPERS)
+CORPUS_SIZE = len(MOCK_PAPERS)
 
 
 class MockS2Handler(BaseHTTPRequestHandler):
@@ -74,24 +98,28 @@ class MockS2Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    @staticmethod
+    def _page(qs, rows):
+        """Apply the request's limit/offset to a row list."""
+        limit = int((qs.get("limit") or ["100"])[0])
+        offset = int((qs.get("offset") or ["0"])[0])
+        return rows[offset:offset + limit], offset, limit
+
     def do_GET(self):
         url = urlparse(self.path)
         qs = parse_qs(url.query)
         fields = (qs.get("fields") or [""])[0].split(",")
         MockS2Handler.calls.append(f"GET {url.path}")
 
-        # /paper/search -- honour limit/offset so pagination can be tested
+        # /paper/search
         if url.path == "/graph/v1/paper/search":
-            limit = int((qs.get("limit") or ["100"])[0])
-            offset = int((qs.get("offset") or ["0"])[0])
-            everything = list(MOCK_PAPERS.values())
-            page = everything[offset:offset + limit]
+            page, offset, _ = self._page(qs, list(MOCK_PAPERS.values()))
             return self._send({
-                "total": len(everything), "offset": offset, "next": offset + len(page),
+                "total": len(MOCK_PAPERS), "offset": offset, "next": offset + len(page),
                 "data": [{k: p[k] for k in fields if k in p} for p in page],
             })
 
-        # /paper/{id}/citations and /paper/{id}/references
+        # /paper/{id}/citations and /paper/{id}/references -- both paginated
         if url.path.startswith("/graph/v1/paper/") and (
                 url.path.endswith("/citations") or url.path.endswith("/references")):
             pid = url.path.split("/paper/")[1].split("/")[0]
@@ -102,16 +130,18 @@ class MockS2Handler(BaseHTTPRequestHandler):
             pairs = citations_of(pid) if kind == "citations" else references_of(pid)
             wrapper = "citingPaper" if kind == "citations" else "citedPaper"
 
-            data = []
+            rows = []
             for other_id, is_influential in pairs:
-                other = MOCK_PAPERS[other_id]
-                data.append({
+                other = ALL_PAPERS[other_id]
+                rows.append({
                     wrapper: {k: other[k] for k in fields if k in other},
                     "isInfluential": is_influential,
                     "contexts": [f"we build on {other['title']}"],
                     "intents": ["methodology"],
                 })
-            return self._send({"data": data})
+
+            page, offset, _ = self._page(qs, rows)
+            return self._send({"data": page, "offset": offset, "next": offset + len(page)})
 
         return self._send({"error": "not found"}, status=404)
 
@@ -131,117 +161,236 @@ class MockS2Handler(BaseHTTPRequestHandler):
         return self._send({"data": data})
 
 
-def run_fetch(tmp_path: Path, *cli_args):
+def write_config(tmp_path: Path, **overrides) -> Path:
+    """Write a minimal, fully-filled `fetch:` config for the mock run."""
+    cfg = {
+        "seed_queries": ["retrieval augmented generation"],
+        "num_papers": CORPUS_SIZE,
+        "year_from": 2018,
+        "year_to": 2025,
+        "request_delay_seconds": 0,
+        "max_retries": 2,
+    }
+    cfg.update(overrides)
+    lines = ["fetch:"]
+    lines.append("  seed_queries:")
+    lines += [f"    - {q!r}" for q in cfg["seed_queries"]]
+    for key in ("num_papers", "year_from", "year_to",
+                "request_delay_seconds", "max_retries", "max_edges_per_paper"):
+        if key in cfg:
+            lines.append(f"  {key}: {cfg[key]}")
+    path = tmp_path / "schema.yaml"
+    path.write_text("\n".join(lines) + "\n")
+    return path
+
+
+def run_fetch(tmp_path: Path, *cli_args, **config_overrides):
     """Invoke the real fetch_papers.main() against the mock server."""
-    config = tmp_path / "schema.yaml"
-    config.write_text(
-        "fetch:\n"
-        "  seed_queries: ['retrieval augmented generation']\n"
-        "  num_papers: 5\n"
-        "  year_from: 2018\n"
-        "  year_to: 2025\n"
-        "  request_delay_seconds: 0\n"
-        "  max_retries: 2\n"
-    )
+    config = write_config(tmp_path, **config_overrides)
     out = tmp_path / "raw_papers.json"
-    argv = ["--config", str(config), "--out", str(out), *cli_args]
-    rc = fp.main(argv)
+    rc = fp.main(["--config", str(config), "--out", str(out), *cli_args])
     cache = json.loads(out.read_text()) if out.exists() else {}
     return rc, cache, out
 
 
-def main() -> int:
-    import tempfile
+# --------------------------------------------------------------------------
+# tests
+# --------------------------------------------------------------------------
+def test_fetch_cold_start():
+    MockS2Handler.calls.clear()
+    with TempDir() as td:
+        rc, cache, _ = run_fetch(Path(td))
+        assert rc == 0
+        assert len(cache["papers"]) == CORPUS_SIZE
+        assert cache["meta"]["source"] == "semantic-scholar-graph-api"
+        assert cache["meta"]["is_fixture"] is False
+        assert all("references" in p and "citations" in p
+                   for p in cache["papers"].values())
+        assert sum(len(p["references"]) for p in cache["papers"].values()) == TOTAL_REFS
+        assert sum(len(p["citations"]) for p in cache["papers"].values()) == TOTAL_CITS
+        assert any(e["isInfluential"] for p in cache["papers"].values()
+                   for e in p["references"].values())
+        assert all(e["contexts"] and e["intents"] for p in cache["papers"].values()
+                   for e in list(p["references"].values()) + list(p["citations"].values()))
+        # p3 cites p1 (influential) and p4; nothing cites p3.
+        assert sorted(cache["papers"]["p3"]["references"]) == ["p1", "p4"]
+        assert cache["papers"]["p3"]["references"]["p1"]["isInfluential"] is True
+        assert cache["papers"]["p3"]["citations"] == {}
+        # Out-of-corpus edge endpoints land in `neighbors`, not `papers`.
+        assert set(cache["neighbors"]) == set(SYNTH)
 
+
+def test_fetch_is_idempotent():
+    with TempDir() as td:
+        run_fetch(Path(td))
+        before = len(MockS2Handler.calls)
+        rc, cache, _ = run_fetch(Path(td))
+        assert rc == 0
+        assert len(cache["papers"]) == CORPUS_SIZE
+        assert len(MockS2Handler.calls) == before, "second run made API calls"
+
+
+def test_fetch_refresh_keeps_edges():
+    with TempDir() as td:
+        run_fetch(Path(td))
+        rc, cache, _ = run_fetch(Path(td), "--refresh")
+        assert rc == 0
+        assert len(cache["papers"]) == CORPUS_SIZE
+        assert sum(len(p["references"]) for p in cache["papers"].values()) == TOTAL_REFS
+        assert sum(len(p["citations"]) for p in cache["papers"].values()) == TOTAL_CITS
+
+
+def test_fetch_no_edges():
+    with TempDir() as td:
+        MockS2Handler.calls.clear()
+        rc, cache, _ = run_fetch(Path(td), "--reset", "--no-edges")
+        assert rc == 0
+        assert len(cache["papers"]) == CORPUS_SIZE
+        assert all(not p["references"] and not p["citations"]
+                   for p in cache["papers"].values())
+        assert not any("/citations" in c for c in MockS2Handler.calls)
+        # ...and a later run without --no-edges must still fetch them.
+        rc, cache, _ = run_fetch(Path(td))
+        assert sum(len(p["references"]) for p in cache["papers"].values()) == TOTAL_REFS
+
+
+def test_fetch_reset_and_limit():
+    with TempDir() as td:
+        rc, cache, _ = run_fetch(Path(td), "--reset", "--limit", "2")
+        assert rc == 0
+        assert len(cache["papers"]) == 2
+
+
+# --- pagination ------------------------------------------------------------
+def test_citations_are_paginated():
+    """250 citation edges must come back complete, across several pages."""
+    MockS2Handler.calls.clear()
+    with TempDir() as td:
+        rc, cache, _ = run_fetch(Path(td), "--reset", max_edges_per_paper=500)
+        assert rc == 0
+        hub = cache["papers"][HUB]
+        assert len(hub["citations"]) == HUB_CITERS
+        # 250 edges at 100 per page = 3 GETs against the hub.
+        hub_calls = [c for c in MockS2Handler.calls if f"/paper/{HUB}/citations" in c]
+        assert len(hub_calls) == 3, hub_calls
+        # The default cap was not reached, so nothing is flagged truncated.
+        assert cache["meta"]["edges_truncated_count"] == 0
+        assert cache["meta"]["edges_truncated"] == []
+
+
+def test_edge_cap_truncates_and_records():
+    with TempDir() as td:
+        rc, cache, _ = run_fetch(Path(td), "--reset", max_edges_per_paper=120)
+        assert rc == 0
+        hub = cache["papers"][HUB]
+        assert len(hub["citations"]) == 120, "cap not respected"
+        trunc = cache["meta"]["edges_truncated"]
+        assert len(trunc) == 1, trunc
+        assert trunc[0]["paperId"] == HUB
+        assert trunc[0]["kind"] == "citations"
+        assert trunc[0]["kept"] == 120
+        assert cache["meta"]["max_edges_per_paper"] == 120
+        assert cache["meta"]["edges_truncated_count"] == 1
+
+
+def test_cap_larger_than_available_is_not_truncated():
+    """A cap above the true edge count must NOT be reported as truncated."""
+    with TempDir() as td:
+        rc, cache, _ = run_fetch(Path(td), "--reset", max_edges_per_paper=10_000)
+        assert rc == 0
+        assert len(cache["papers"][HUB]["citations"]) == HUB_CITERS
+        assert cache["meta"]["edges_truncated_count"] == 0
+
+
+def test_default_cap_is_500():
+    assert fp.DEFAULT_MAX_EDGES_PER_PAPER == 500
+
+
+# --- --validate ------------------------------------------------------------
+def test_validate_reports_cache(tmp_path=None):
+    with TempDir() as td:
+        rc, cache, out = run_fetch(Path(td), "--reset")
+        assert rc == 0
+
+        rc = fp.main(["--out", str(out), "--validate"])
+        assert rc == 0
+
+        report = fp.validate_cache(out)
+        assert report["is_fixture"] is False
+        assert report["papers"] == CORPUS_SIZE
+        assert report["missing_abstract"] == 0
+        assert report["year_min"] == 2019
+        assert report["year_max"] == 2024
+        # Unique edges, deduplicated across the references/citations mirror.
+        assert report["internal_edges"] == TOTAL_REFS
+        assert report["external_edges"] == HUB_CITERS
+        assert report["total_edges"] == TOTAL_REFS + HUB_CITERS
+        # p5 is deliberately isolated.
+        assert report["zero_edges"] == 1
+        assert report["zero_edges_ids"] == ["p5"]
+        assert report["edges_truncated"] == 0
+
+
+def test_validate_needs_no_config():
+    """--validate must work even when the config is full of TODO placeholders."""
+    with TempDir() as td:
+        td = Path(td)
+        run_fetch(td, "--reset")
+        out = td / "raw_papers.json"
+        broken = td / "schema.yaml"
+        broken.write_text("fetch:\n  num_papers: TODO\n")
+        rc = fp.main(["--config", str(broken), "--out", str(out), "--validate"])
+        assert rc == 0
+        assert fp.validate_cache(out)["papers"] == CORPUS_SIZE
+
+
+def test_validate_missing_cache(tmp_path=None):
+    with TempDir() as td:
+        rc = fp.main(["--out", str(Path(td) / "nope.json"), "--validate"])
+        assert rc == 1
+
+
+# --- runner ----------------------------------------------------------------
+class TempDir:
+    """Minimal stand-in for tempfile.TemporaryDirectory as a context manager."""
+
+    def __enter__(self):
+        import tempfile
+        self._td = tempfile.TemporaryDirectory()
+        return self._td.name
+
+    def __exit__(self, *exc):
+        self._td.cleanup()
+        return False
+
+
+def main() -> int:
     server = HTTPServer(("127.0.0.1", 0), MockS2Handler)
     port = server.server_address[1]
     threading.Thread(target=server.serve_forever, daemon=True).start()
-    import os
     os.environ["S2_BASE_URL"] = f"http://127.0.0.1:{port}"
     print(f"mock S2 API on 127.0.0.1:{port}\n")
 
-    failures = []
-
-    def check(label, cond, detail=""):
-        print(f"  {'PASS' if cond else 'FAIL'}  {label}" + (f" -- {detail}" if not cond and detail else ""))
-        if not cond:
-            failures.append(label)
-
-    with tempfile.TemporaryDirectory() as td:
-        tmp = Path(td)
-
-        # ---- 1. cold fetch --------------------------------------------------
-        print("test_fetch_cold_start")
-        MockS2Handler.calls.clear()
-        rc, cache, out = run_fetch(tmp)
-        check("exit code 0", rc == 0, f"rc={rc}")
-        check("all 5 papers cached", len(cache.get("papers", {})) == 5,
-              f"got {len(cache.get('papers', {}))}")
-        check("meta records real source", cache["meta"]["source"] == "semantic-scholar-graph-api")
-        check("meta not marked fixture", cache["meta"]["is_fixture"] is False)
-        check("every paper has both edge maps",
-              all("references" in p and "citations" in p for p in cache["papers"].values()))
-        check("some edges were collected",
-              sum(len(p["references"]) for p in cache["papers"].values()) == TOTAL_REFS,
-              f"refs={sum(len(p['references']) for p in cache['papers'].values())} "
-              f"expected {TOTAL_REFS}")
-        check("isInfluential survived the round trip",
-              any(e["isInfluential"] for p in cache["papers"].values()
-                  for e in p["references"].values()))
-        check("contexts/intents survived the round trip",
-              all(e["contexts"] and e["intents"] for p in cache["papers"].values()
-                  for e in list(p["references"].values()) + list(p["citations"].values())))
-        check("citation-side edges also collected",
-              sum(len(p["citations"]) for p in cache["papers"].values()) == TOTAL_CITS,
-              f"cits={sum(len(p['citations']) for p in cache['papers'].values())} "
-              f"expected {TOTAL_CITS}")
-        check("p1 is cited by p3 exactly once",
-              list(cache["papers"]["p1"]["citations"]) == ["p3"])
-
-        # ---- 2. re-run is a no-op -----------------------------------------
-        print("\ntest_fetch_is_idempotent")
-        calls_before = len(MockS2Handler.calls)
-        rc, cache2, _ = run_fetch(tmp)
-        check("exit code 0", rc == 0)
-        check("paper count unchanged", len(cache2["papers"]) == 5)
-        check("no new API calls", len(MockS2Handler.calls) == calls_before,
-              f"{len(MockS2Handler.calls) - calls_before} extra calls")
-
-        # ---- 3. --refresh re-fetches metadata but reuses edges ------------
-        print("\ntest_fetch_refresh")
-        MockS2Handler.calls.clear()
-        rc, cache3, _ = run_fetch(tmp, "--refresh")
-        check("exit code 0", rc == 0)
-        check("still 5 papers", len(cache3["papers"]) == 5)
-        check("edges preserved across refresh",
-              sum(len(p["references"]) for p in cache3["papers"].values()) == TOTAL_REFS)
-
-        # ---- 4. --no-edges -------------------------------------------------
-        print("\ntest_fetch_no_edges")
-        MockS2Handler.calls.clear()
-        rc, cache4, _ = run_fetch(tmp, "--reset", "--no-edges")
-        check("exit code 0", rc == 0)
-        check("5 papers", len(cache4["papers"]) == 5)
-        check("no edges fetched",
-              all(not p["references"] and not p["citations"]
-                  for p in cache4["papers"].values()))
-        check("no citation endpoints called",
-              not any("/citations" in c for c in MockS2Handler.calls))
-
-        # ---- 5. --reset --limit -------------------------------------------
-        print("\ntest_fetch_reset_and_limit")
-        rc, cache5, _ = run_fetch(tmp, "--reset", "--limit", "2")
-        check("exit code 0", rc == 0)
-        check("exactly 2 papers fetched", len(cache5["papers"]) == 2,
-              f"got {len(cache5['papers'])}")
+    tests = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
+    failed = []
+    for test in tests:
+        print(f"{test.__name__} ... ", end="", flush=True)
+        try:
+            test()
+            print("PASS")
+        except AssertionError as exc:
+            print(f"FAIL -- {exc}")
+            failed.append(test.__name__)
+        except Exception as exc:  # noqa: BLE001
+            print(f"ERROR -- {type(exc).__name__}: {exc}")
+            failed.append(test.__name__)
 
     server.shutdown()
-
     print("\n" + "=" * 60)
-    if failures:
-        print(f"{len(failures)} FAILED: {failures}")
+    print(f"{len(tests) - len(failed)}/{len(tests)} passed")
+    if failed:
+        print("FAILED: " + ", ".join(failed))
         return 1
-    print("all fetch_papers tests passed")
     return 0
 
 

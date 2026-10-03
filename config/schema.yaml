@@ -14,13 +14,13 @@
 # ===========================================================================
 fetch:
   seed_queries:
-    - TODO
-  num_papers: TODO          # int, target corpus size (the brief says 50-100)
-  year_from: TODO           # int or null
-  year_to: TODO             # int or null
-
-  # Optional tuning knobs; the defaults shown are what the code uses.
-  request_delay_seconds: 1.0   # polite spacing between API calls
+    - retrieval-augmented generation
+    - retrieval augmented language model
+    - dense passage retrieval for question answering
+  num_papers: 70
+  year_from: 2020
+  year_to: 2025
+  request_delay_seconds: 1.2
   max_retries: 6               # retries for 429 / 5xx / connection errors
   fetch_edges: true            # false skips citations+references (much faster)
 

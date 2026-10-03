@@ -64,6 +64,12 @@ EDGE_EXTRA_FIELDS = ["contexts", "intents", "isInfluential"]
 MAX_SEARCH_PAGE = 100
 MAX_BATCH_IDS = 500
 
+# Citations/references are paged too. The API serves at most 1000 rows per call
+# but a highly cited paper can have tens of thousands of citation edges, so we
+# page until we hit fetch.max_edges_per_paper (default 500).
+EDGE_PAGE_SIZE = 100
+DEFAULT_MAX_EDGES_PER_PAPER = 500
+
 
 # --------------------------------------------------------------------------
 # config
@@ -133,6 +139,8 @@ def load_fetch_config(config_path: Path) -> dict:
         "request_delay_seconds": float(cfg.get("request_delay_seconds", 1.0)),
         "max_retries": int(cfg.get("max_retries", 6)),
         "search_page_size": int(cfg.get("search_page_size", MAX_SEARCH_PAGE)),
+        "max_edges_per_paper": int(cfg.get("max_edges_per_paper",
+                                           DEFAULT_MAX_EDGES_PER_PAPER)),
         "fetch_edges": bool(cfg.get("fetch_edges", True)),
     }
 
@@ -269,27 +277,57 @@ class S2Client:
                 params={"fields": ",".join(PAPER_FIELDS)},
                 json={"ids": chunk},
             )
-            results.extend(data.get("data") or [])
+            # S2 may return a list or a dict with 'data'
+            if isinstance(data, list):
+                results.extend(data)
+            elif isinstance(data, dict):
+                results.extend(data.get("data") or data.get("papers") or [])
+            else:
+                results.extend([])
         return [r for r in results if r]
 
     def _edge_fields(self) -> str:
         return ",".join(PAPER_FIELDS + EDGE_EXTRA_FIELDS)
 
-    def get_citations(self, paper_id: str) -> list[dict]:
-        """Who cites `paper_id`, with per-edge metadata."""
-        data = self.request(
-            "GET", f"/paper/{paper_id}/citations",
-            params={"fields": self._edge_fields(), "limit": MAX_SEARCH_PAGE},
-        )
-        return data.get("data") or []
+    def _paged_edges(self, paper_id: str, kind: str, limit: int
+                     ) -> tuple[list[dict], bool]:
+        """Page through /paper/{id}/citations or /references.
 
-    def get_references(self, paper_id: str) -> list[dict]:
-        """What `paper_id` cites, with per-edge metadata."""
-        data = self.request(
-            "GET", f"/paper/{paper_id}/references",
-            params={"fields": self._edge_fields(), "limit": MAX_SEARCH_PAGE},
-        )
-        return data.get("data") or []
+        `kind` is "citations" or "references". Returns (edges, truncated), where
+        `truncated` is True when we stopped because we hit `limit` rather than
+        because the API ran out of rows. The API does not report a total, so a
+        truncated result means "at least `limit` edges exist", not an exact count.
+        """
+        collected: list[dict] = []
+        offset = 0
+        while len(collected) < limit:
+            page = min(EDGE_PAGE_SIZE, limit - len(collected))
+            data = self.request(
+                "GET", f"/paper/{paper_id}/{kind}",
+                params={
+                    "fields": self._edge_fields(),
+                    "limit": page,
+                    "offset": offset,
+                },
+            )
+            batch = data.get("data") or []
+            collected.extend(batch)
+            if len(batch) < page:
+                # Short page: the API had nothing more to give.
+                return collected, False
+            offset += page
+        # We filled the cap without ever seeing a short page.
+        return collected, True
+
+    def get_citations(self, paper_id: str, limit: int = DEFAULT_MAX_EDGES_PER_PAPER
+                      ) -> tuple[list[dict], bool]:
+        """Who cites `paper_id`, with per-edge metadata. See _paged_edges."""
+        return self._paged_edges(paper_id, "citations", limit)
+
+    def get_references(self, paper_id: str, limit: int = DEFAULT_MAX_EDGES_PER_PAPER
+                       ) -> tuple[list[dict], bool]:
+        """What `paper_id` cites, with per-edge metadata. See _paged_edges."""
+        return self._paged_edges(paper_id, "references", limit)
 
 
 # --------------------------------------------------------------------------
@@ -449,33 +487,44 @@ def _absorb_edge(cache: dict, edge: dict, other_key: str) -> dict | None:
     }
 
 
-def fetch_edges(client: S2Client, paper_ids: list[str], cache: dict, log) -> int:
-    """Fetch citations + references for every paper that has not got them yet."""
+def fetch_edges(client: S2Client, paper_ids: list[str], cache: dict, log,
+                max_edges_per_paper: int = DEFAULT_MAX_EDGES_PER_PAPER
+                ) -> tuple[int, list[dict]]:
+    """Fetch citations + references for every paper that has not got them yet.
+
+    Returns (edges_collected, truncations) where truncations is a list of
+    {"paperId", "title", "kind", "kept"} records for every endpoint that hit
+    max_edges_per_paper, so the caller can record the limitation in meta.
+    """
     todo = [pid for pid in paper_ids if not has_edges(cache["papers"].get(pid, {}))]
     if not todo:
         log("  all edge sets already cached")
-        return 0
+        return 0, []
 
-    log(f"  fetching citations/references for {len(todo)} paper(s)")
+    log(f"  fetching citations/references for {len(todo)} paper(s) "
+        f"(cap {max_edges_per_paper} edges per paper per direction)")
     collected = 0
+    truncations: list[dict] = []
+
     for i, pid in enumerate(todo, start=1):
         rec = cache["papers"].setdefault(pid, {"paperId": pid})
 
-        for edge in client.get_citations(pid):
-            meta = _absorb_edge(cache, edge, "citingPaper")
-            if meta is None:
-                continue
-            target = edge["citingPaper"]["paperId"]
-            rec.setdefault("citations", {})[target] = meta
-            collected += 1
-
-        for edge in client.get_references(pid):
-            meta = _absorb_edge(cache, edge, "citedPaper")
-            if meta is None:
-                continue
-            target = edge["citedPaper"]["paperId"]
-            rec.setdefault("references", {})[target] = meta
-            collected += 1
+        for kind, wrapper in (("citations", "citingPaper"), ("references", "citedPaper")):
+            edges, truncated = getattr(client, f"get_{kind}")(pid, max_edges_per_paper)
+            for edge in edges:
+                meta = _absorb_edge(cache, edge, wrapper)
+                if meta is None:
+                    continue
+                target = edge[wrapper]["paperId"]
+                rec.setdefault(kind, {})[target] = meta
+                collected += 1
+            if truncated:
+                truncations.append({
+                    "paperId": pid,
+                    "title": rec.get("title"),
+                    "kind": kind,
+                    "kept": len(edges),
+                })
 
         # An empty edge map is a real answer ("this paper cites nothing"), so the
         # keys must exist and the paper must be marked done.
@@ -486,7 +535,108 @@ def fetch_edges(client: S2Client, paper_ids: list[str], cache: dict, log) -> int
         if i % 10 == 0 or i == len(todo):
             log(f"    edges {i}/{len(todo)}")
 
-    return collected
+    if truncations:
+        log(f"  WARNING: {len(truncations)} endpoint(s) hit the "
+            f"{max_edges_per_paper}-edge cap and were truncated; "
+            f"recorded in meta.edges_truncated")
+
+    return collected, truncations
+
+
+# --------------------------------------------------------------------------
+# cache validation
+# --------------------------------------------------------------------------
+def validate_cache(path: Path) -> dict:
+    """Inspect the cache and report its shape. Reads only the cache, no config.
+
+    Returns a dict of findings; the caller prints it.
+    """
+    cache = load_cache(path)
+    papers = cache.get("papers", {})
+    neighbors = cache.get("neighbors", {})
+    meta = cache.get("meta", {})
+
+    years = [p["year"] for p in papers.values() if isinstance(p.get("year"), int)]
+    missing_abstract = [pid for pid, p in papers.items()
+                        if not (p.get("abstract") or "").strip()]
+    zero_edges = [pid for pid, p in papers.items()
+                  if not p.get("citations") and not p.get("references")]
+
+    # Unique citation edges, as (citer_id, cited_id). Every edge appears twice in
+    # the cache -- once as P.references[R], once as R.citations[P] -- so both
+    # sides are read and deduplicated. Reading only `references` would miss
+    # edges whose citer is outside the corpus.
+    edges: set[tuple[str, str]] = set()
+    for pid, p in papers.items():
+        for cited_id in (p.get("references") or {}):
+            edges.add((pid, cited_id))
+        for citer_id in (p.get("citations") or {}):
+            edges.add((citer_id, pid))
+
+    internal = sum(1 for a, b in edges if a in papers and b in papers)
+    external = len(edges) - internal
+
+    truncations = meta.get("edges_truncated") or []
+    return {
+        "path": path,
+        "is_fixture": meta.get("is_fixture"),
+        "source": meta.get("source"),
+        "fetched_at": meta.get("fetched_at"),
+        "papers": len(papers),
+        "neighbors": len(neighbors),
+        "missing_abstract": len(missing_abstract),
+        "missing_abstract_ids": missing_abstract,
+        "zero_edges": len(zero_edges),
+        "zero_edges_ids": zero_edges,
+        "year_min": min(years) if years else None,
+        "year_max": max(years) if years else None,
+        "years_missing": sum(1 for p in papers.values()
+                             if not isinstance(p.get("year"), int)),
+        "internal_edges": internal,
+        "external_edges": external,
+        "total_edges": len(edges),
+        "edges_truncated": len(truncations),
+    }
+
+
+def print_validation(report: dict, stream=sys.stdout) -> None:
+    """Print a cache validation report in a scannable form."""
+    def line(label, value):
+        stream.write(f"  {label:<34} {value}\n")
+
+    fixture = report["is_fixture"]
+    fixture_txt = ("yes -- OFFLINE TEST FIXTURE, not real API output"
+                   if fixture else "no") if fixture is not None else "unknown"
+
+    stream.write("=" * 68 + "\n")
+    stream.write("Cache validation: " + str(report["path"]) + "\n")
+    stream.write("=" * 68 + "\n")
+    line("is_fixture", fixture_txt)
+    line("source", report["source"] or "unknown")
+    line("fetched_at", report["fetched_at"] or "unknown")
+    line("papers", report["papers"])
+    line("neighbors (edge endpoints only)", report["neighbors"])
+    line("papers missing an abstract", report["missing_abstract"])
+    line("papers with zero edges", report["zero_edges"])
+    if report["year_min"] is None:
+        line("year range", "no papers with an int year")
+    else:
+        line("year range", f"{report['year_min']} - {report['year_max']}")
+    line("papers with no year", report["years_missing"])
+    line("citation edges, both ends in corpus", report["internal_edges"])
+    line("citation edges, one end outside", report["external_edges"])
+    line("citation edges, total (deduplicated)", report["total_edges"])
+    line("endpoints truncated by the cap", report["edges_truncated"])
+    stream.write("\n")
+
+    def show_ids(label, ids):
+        if ids:
+            shown = ", ".join(ids[:5]) + (" ..." if len(ids) > 5 else "")
+            stream.write(f"  {label}: {shown}\n")
+
+    show_ids("papers without an abstract", report["missing_abstract_ids"])
+    show_ids("papers without any edge", report["zero_edges_ids"])
+    stream.write("\n")
 
 
 # --------------------------------------------------------------------------
@@ -508,12 +658,24 @@ def main(argv: Iterable[str] | None = None) -> int:
                     help="discard the existing cache first")
     ap.add_argument("--no-edges", action="store_true",
                     help="skip citations/references (much faster, no graph edges)")
+    ap.add_argument("--validate", action="store_true",
+                    help="report on the cache and exit; makes no API calls and "
+                         "does not read the config")
     ap.add_argument("--dry-run", action="store_true",
                     help="print the plan and make no API calls")
     args = ap.parse_args(list(argv) if argv is not None else None)
 
     def log(msg: str = "") -> None:
         print(msg, file=sys.stderr, flush=True)
+
+    # --validate inspects the cache only: no config, no API. It must work even
+    # when the config template is still full of TODO placeholders.
+    if args.validate:
+        if not args.out.exists():
+            print(f"error: no cache at {args.out}", file=sys.stderr)
+            return 1
+        print_validation(validate_cache(args.out))
+        return 0
 
     cfg = load_fetch_config(args.config)
     api_key = os.environ.get("S2_API_KEY") or None
@@ -538,8 +700,15 @@ def main(argv: Iterable[str] | None = None) -> int:
     log(f"fetch edges   : {cfg['fetch_edges'] and not args.no_edges}")
     log()
 
-    if want <= 0 and not (args.refresh and existing):
-        log("Nothing to do: the cache already meets the target paper count.")
+    edges_wanted = cfg["fetch_edges"] and not args.no_edges
+    edges_pending = [pid for pid in cache["papers"]
+                     if not has_edges(cache["papers"][pid])]
+
+    # Three reasons to keep going: new papers are wanted, --refresh was asked
+    # for, or an earlier --no-edges run left citation edges unfetched.
+    if want <= 0 and not args.refresh and not edges_pending:
+        log("Nothing to do: the cache already meets the target paper count "
+            "and every paper has its citation edges.")
         log("Use --refresh to refetch metadata, or --reset to start over.")
         return 0
 
@@ -553,10 +722,12 @@ def main(argv: Iterable[str] | None = None) -> int:
         max_retries=cfg["max_retries"],
     )
 
+    n_meta = 0
     if want <= 0:
-        # --refresh on an already-full cache: refetch metadata, skip the search.
-        log("[1/3] --refresh: reusing the cached paper ids, no search needed")
-        candidates = list(cache["papers"])
+        # Cache is full: no search, no metadata fetch, just the outstanding edges.
+        log("[1/3] cache already at target paper count; skipping search")
+        log(f"[2/3] skipping metadata ({existing} paper(s) cached)")
+        candidates = []
     else:
         log("[1/3] searching seed queries")
         candidates = collect_candidates(client, cfg, cache, want, log)
@@ -564,14 +735,17 @@ def main(argv: Iterable[str] | None = None) -> int:
             log("No new papers found for the seed queries. "
                 "Widen fetch.year_from / fetch.year_to or add seed queries.")
             return 1
-
-    log(f"[2/3] fetching metadata for {len(candidates)} paper(s)")
-    n_meta = fetch_metadata(client, candidates, cache, args.refresh, log)
+        log(f"[2/3] fetching metadata for {len(candidates)} paper(s)")
+        n_meta = fetch_metadata(client, candidates, cache, args.refresh, log)
 
     log("[3/3] fetching citation edges")
     n_edges = 0
-    if cfg["fetch_edges"] and not args.no_edges:
-        n_edges = fetch_edges(client, list(cache["papers"]), cache, log)
+    truncations: list[dict] = []
+    if edges_wanted:
+        n_edges, truncations = fetch_edges(
+            client, list(cache["papers"]), cache, log,
+            max_edges_per_paper=cfg["max_edges_per_paper"],
+        )
     else:
         # Leave `edges_fetched` unset so a later run without --no-edges fills these in.
         for pid in cache["papers"]:
@@ -587,6 +761,11 @@ def main(argv: Iterable[str] | None = None) -> int:
         "year_from": cfg["year_from"],
         "year_to": cfg["year_to"],
         "api_calls": client.call_count,
+        "max_edges_per_paper": cfg["max_edges_per_paper"],
+        # Known limitation: endpoints that hit the cap. The API gives no total,
+        # so these papers have AT LEAST this many edges; the rest are not fetched.
+        "edges_truncated": truncations,
+        "edges_truncated_count": len(truncations),
         "note": "Cached Semantic Scholar Graph API output. Consumed by build_graph.py.",
     }
 
@@ -598,6 +777,10 @@ def main(argv: Iterable[str] | None = None) -> int:
     log(f"new metadata  : {n_meta}")
     log(f"new edges     : {n_edges}")
     log(f"api calls     : {client.call_count}")
+    if truncations:
+        log(f"TRUNCATED     : {len(truncations)} endpoint(s) hit the "
+            f"{cfg['max_edges_per_paper']}-edge cap "
+            f"(recorded in meta.edges_truncated)")
     log(f"wrote         : {args.out}")
     return 0
 

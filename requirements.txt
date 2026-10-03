@@ -1,12 +1,23 @@
 # Runtime dependencies.
 #
-# NOTE: PyYAML is the one addition to the originally allowed list
-# (requests, pandas, networkx, scikit-learn, re, json, argparse).
-# It is required because config/schema.yaml and config/vocab.yaml are YAML.
-# It is only used to *load* config -- no schema logic lives in this library.
+# PyYAML is the one addition to the originally allowed list
+# (requests, pandas, networkx, scikit-learn, re, json, argparse): it is required
+# because config/schema.yaml and config/vocab.yaml are YAML. It is only used to
+# *load* config -- no schema logic lives in this library.
+#
+# Install everything:
+#     pip install -r requirements.txt
 
 requests>=2.31
 pandas>=2.0
 networkx>=3.0
 scikit-learn>=1.3
 PyYAML>=6.0
+
+# --- dev only -------------------------------------------------------------
+# pytest drives tests/. It is deliberately NOT pinned here, because you do not
+# need it to run the fetch / build / analyze pipeline. Install it separately:
+#
+#     pip install pytest
+#
+# pytest>=7.0

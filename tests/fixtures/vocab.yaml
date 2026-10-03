@@ -1,0 +1,26 @@
+# Test-only vocabularies. Deliberately tiny and deliberately about a made-up
+# topic ("kelp farming") so that a passing test cannot accidentally be explained
+# by real RAG terminology leaking in from the project's real config.
+#
+# Format reference: see config/vocab.yaml.
+
+vocabularies:
+  - name: crops
+    description: Seaweed and algae grown in aquaculture.
+    terms:
+      - kelp
+      - nori
+      - seaweed
+
+  - name: techniques
+    description: Methods for growing and harvesting the crop.
+    terms:
+      - hydroculture
+      - net-based farming
+      - vertical farming
+
+  - name: problems
+    description: Things that go wrong.
+    terms:
+      - blight
+      - nutrient collapse

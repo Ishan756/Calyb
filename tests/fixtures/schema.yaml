@@ -1,0 +1,123 @@
+# Test-only schema. Tiny, synthetic, and about a made-up topic ("kelp farming")
+# so a passing test cannot be explained by real RAG terminology.
+#
+# It is built to exercise every condition type the engine supports:
+#   vocab, regex, year, citation_count, edge{influential,intents_any,contexts_any},
+#   all:/any: nesting, and both edge-rule kinds (vocabulary_term and citation
+#   with direction references and citations).
+#
+# This file is NOT the project's real schema; it is test data.
+
+fetch:
+  seed_queries:
+    - kelp aquaculture
+  num_papers: 6
+  year_from: 2018
+  year_to: 2023
+
+node_types:
+  - name: Paper
+    description: A paper in the corpus. Materialised from data/raw_papers.json.
+    source: Paper
+    properties: [paperId, title, year, venue, citationCount]
+
+  - name: Topic
+    description: >
+      A concept named in a paper's own text. Materialised by vocabulary_term
+      rules rather than from a record, hence source: Derived.
+    source: Derived
+    properties: [term]
+
+edge_types:
+  # --- target: vocabulary_term -------------------------------------------------
+  - name: GROWS
+    description: The paper names a crop from the `crops` vocabulary.
+    source: Paper
+    target: Topic
+    rule:
+      target: vocabulary_term
+      subject:
+        all:
+          - vocab: {name: crops, where: [title, abstract]}
+
+  - name: USES_TECHNIQUE
+    description: >
+      Year-bounded, and accepts either a vocabulary hit in the title or a regex
+      hit in the abstract. Exercises all: wrapping any:.
+    source: Paper
+    target: Topic
+    rule:
+      target: vocabulary_term
+      subject:
+        all:
+          - year: {between: [2018, 2023]}
+          - any:
+              - vocab: {name: techniques, where: [title]}
+              - regex: {pattern: "hydroculture|vertical", where: [abstract]}
+
+  - name: FACES_PROBLEM
+    description: Well-cited papers that name a problem.
+    source: Paper
+    target: Topic
+    rule:
+      target: vocabulary_term
+      subject:
+        all:
+          - citation_count: {gte: 100}
+          - vocab: {name: problems, where: [title, abstract]}
+
+  # --- target: citation, direction: references ---------------------------------
+  - name: EXTENDS
+    description: >
+      Influential citations to older work. Demonstrates an `edge:` condition plus
+      a year condition on the cited neighbour.
+    source: Paper
+    target: Paper
+    rule:
+      target: citation
+      direction: references
+      edge:
+        all:
+          - edge: {influential: true}
+      object:
+        all:
+          - year: {lt: 2021}
+
+  # --- target: citation, direction: citations ----------------------------------
+  - name: CITED_BY
+    description: >
+      Who cites this paper for methodological reasons, mentioning "scale" in the
+      citing sentence. Exercises intents_any and contexts_any together.
+    source: Paper
+    target: Paper
+    rule:
+      target: citation
+      direction: citations
+      edge:
+        all:
+          - edge: {intents_any: [methodology], contexts_any: "scale"}
+
+reading_order:
+  candidate_pool: 4
+  signals:
+    - name: crop_match
+      weight: 2.0
+      description: The paper names a crop.
+      rule:
+        all:
+          - vocab: {name: crops, where: [title, abstract]}
+
+    - name: method_match
+      weight: 1.5
+      description: The paper names a growing technique, by vocabulary or regex.
+      rule:
+        any:
+          - vocab: {name: techniques, where: [title, abstract]}
+          - regex: {pattern: "hydroculture|vertical", where: [title, abstract]}
+
+    - name: influential_cites
+      weight: 1.0
+      description: The paper has influential outgoing citations.
+      rule:
+        all:
+          - edge: {influential: true, direction: references}
