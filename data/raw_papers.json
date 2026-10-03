@@ -1,0 +1,1452 @@
+{
+  "meta": {
+    "source": "hand-written-fixture",
+    "is_fixture": true,
+    "fetched_at": "2024-01-01T00:00:00Z",
+    "api_key_used": false,
+    "seed_queries": [
+      "retrieval augmented generation",
+      "dense passage retrieval",
+      "retrieval augmented language model"
+    ],
+    "note": "OFFLINE TEST FIXTURE -- not real API output. paperIds are fabricated, citationCounts are approximate snapshots, and abstracts are condensed paraphrases rather than verbatim copies. Titles, years, venues, first authors and the citation relationships between these real papers are accurate. Replace this file by running src/fetch_papers.py."
+  },
+  "papers": {
+    "7de322a0b46744aa74bacab564a0893201c91e87": {
+      "paperId": "7de322a0b46744aa74bacab564a0893201c91e87",
+      "title": "The Probabilistic Relevance Framework: BM25 and Beyond",
+      "abstract": "Describes the probabilistic relevance framework behind text retrieval systems, revisiting the term weighting and document length normalisation of the Okapi BM25 family and comparing it against earlier statistical ranking functions.",
+      "year": 2009,
+      "venue": "Foundations and Trends in Information Retrieval",
+      "authors": [
+        {
+          "authorId": "4d4922ebaef16a8c",
+          "name": "Stephen Robertson"
+        }
+      ],
+      "citationCount": 5400,
+      "externalIds": {
+        "CorpusId": 3647832015,
+        "DOI": "10.1561/1500000019"
+      },
+      "edges_fetched": true,
+      "references": {},
+      "citations": {
+        "50a885925673b9c520695c2b50340b15b1c772bb": {
+          "isInfluential": true,
+          "contexts": [
+            "We compare against BM25, the standard sparse retrieval baseline."
+          ],
+          "intents": [
+            "background"
+          ]
+        },
+        "c76e2b1077a847dca478f6411da7086ae1bf6c3d": {
+          "isInfluential": false,
+          "contexts": [
+            "BM25 remains a strong sparse baseline for passage retrieval."
+          ],
+          "intents": [
+            "background",
+            "method"
+          ]
+        },
+        "1dbe92610faeef1b5591df15e407969cc77e219d": {
+          "isInfluential": false,
+          "contexts": [
+            "Late interaction is compared against BM25 on the MS MARCO passage ranking task."
+          ],
+          "intents": [
+            "evaluation"
+          ]
+        },
+        "520c52ad400063e452055acd026b5307bc1c6fb0": {
+          "isInfluential": true,
+          "contexts": [
+            "Unsupervised dense retrievers are compared against BM25 and against supervised dense baselines."
+          ],
+          "intents": [
+            "background",
+            "evaluation"
+          ]
+        }
+      }
+    },
+    "50a885925673b9c520695c2b50340b15b1c772bb": {
+      "paperId": "50a885925673b9c520695c2b50340b15b1c772bb",
+      "title": "Dense Passage Retrieval for Open-Domain Question Answering",
+      "abstract": "Proposes an open-domain question answering method that retrieves passages from a large corpus with a dense dual-encoder trained end-to-end on question-passage pairs from Wikipedia, and outperforms BM25 substantially.",
+      "year": 2020,
+      "venue": "EMNLP",
+      "authors": [
+        {
+          "authorId": "3ea384ddea882b98",
+          "name": "Vladimir Karpukhin"
+        }
+      ],
+      "citationCount": 3100,
+      "externalIds": {
+        "CorpusId": 932121166,
+        "DOI": "10.18653/v1/2020.emnlp-main.550"
+      },
+      "edges_fetched": true,
+      "references": {
+        "7de322a0b46744aa74bacab564a0893201c91e87": {
+          "isInfluential": true,
+          "contexts": [
+            "We compare against BM25, the standard sparse retrieval baseline."
+          ],
+          "intents": [
+            "background"
+          ]
+        },
+        "e94304919550b4ccdb6097e53192b22a02903acf": {
+          "isInfluential": false,
+          "contexts": [
+            "Retrieved with a pretrained sentence encoder baseline."
+          ],
+          "intents": [
+            "method"
+          ]
+        },
+        "7be11302d35f9d2f7e8138f7abd2272a04191912": {
+          "isInfluential": false,
+          "contexts": [
+            "Retrieved with a pretrained sentence encoder baseline."
+          ],
+          "intents": [
+            "method"
+          ]
+        }
+      },
+      "citations": {
+        "c76e2b1077a847dca478f6411da7086ae1bf6c3d": {
+          "isInfluential": true,
+          "contexts": [
+            "We use the dense passage retriever of Karpukhin et al. as our non-parametric retriever."
+          ],
+          "intents": [
+            "method"
+          ]
+        },
+        "fd38b6f0f1c130d5b285ff4d870578b78f815144": {
+          "isInfluential": false,
+          "contexts": [
+            "Unlike the open-domain question answering setting of Karpukhin et al., we treat retrieval as latent during pretraining."
+          ],
+          "intents": [
+            "method"
+          ]
+        },
+        "f0d55ad67ad153056c4bdeb299d5e08701408834": {
+          "isInfluential": true,
+          "contexts": [
+            "We retrieve top-k passages with the dense retriever of Karpukhin et al."
+          ],
+          "intents": [
+            "method"
+          ]
+        },
+        "38ce9bd9884f2ceaccfb73834af4d2dbdb0efa68": {
+          "isInfluential": false,
+          "contexts": [
+            "We compare our learned retriever against a dense passage retriever baseline."
+          ],
+          "intents": [
+            "method"
+          ]
+        },
+        "21cfcbfff23f20da212a45084ff807e89713d41e": {
+          "isInfluential": true,
+          "contexts": [
+            "Our hypothetical documents are indexed and retrieved with the same dense encoder used for the original queries."
+          ],
+          "intents": [
+            "method"
+          ]
+        },
+        "ff0c8d1946af9c38072dbccdb3b062c7efe67aa6": {
+          "isInfluential": false,
+          "contexts": [
+            "Dense passage retrieval is our main baseline retriever."
+          ],
+          "intents": [
+            "method",
+            "baseline"
+          ]
+        },
+        "7dfb8a6ce8a1459b2c252678a2551610cb685f67": {
+          "isInfluential": true,
+          "contexts": [
+            "We initialise our retriever from the released dense passage retrieval checkpoint."
+          ],
+          "intents": [
+            "method"
+          ]
+        }
+      }
+    },
+    "fd38b6f0f1c130d5b285ff4d870578b78f815144": {
+      "paperId": "fd38b6f0f1c130d5b285ff4d870578b78f815144",
+      "title": "REALM: Retrieval-Augmented Language Model Pre-Training",
+      "abstract": "Introduces retrieval-augmented language model pre-training, treating a latent document as the output of a differentiable retriever so that retrieval is trained jointly with the language modelling objective, reaching state-of-the-art results on open-domain question answering.",
+      "year": 2020,
+      "venue": "ICML",
+      "authors": [
+        {
+          "authorId": "e9b8bc00ea9d3c7c",
+          "name": "Kelvin Guu"
+        }
+      ],
+      "citationCount": 2400,
+      "externalIds": {
+        "CorpusId": 1542350402
+      },
+      "edges_fetched": true,
+      "references": {
+        "50a885925673b9c520695c2b50340b15b1c772bb": {
+          "isInfluential": false,
+          "contexts": [
+            "Unlike the open-domain question answering setting of Karpukhin et al., we treat retrieval as latent during pretraining."
+          ],
+          "intents": [
+            "method"
+          ]
+        }
+      },
+      "citations": {
+        "c76e2b1077a847dca478f6411da7086ae1bf6c3d": {
+          "isInfluential": false,
+          "contexts": [
+            "REALM is the closest retrieval-augmented pretraining baseline and is compared against directly."
+          ],
+          "intents": [
+            "method",
+            "evaluation"
+          ]
+        },
+        "38ce9bd9884f2ceaccfb73834af4d2dbdb0efa68": {
+          "isInfluential": false,
+          "contexts": [
+            "REALM is the pre-training baseline we extend to few-shot learning."
+          ],
+          "intents": [
+            "method"
+          ]
+        }
+      }
+    },
+    "c76e2b1077a847dca478f6411da7086ae1bf6c3d": {
+      "paperId": "c76e2b1077a847dca478f6411da7086ae1bf6c3d",
+      "title": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks",
+      "abstract": "Combines a parametric sequence-to-sequence generator with a non-parametric dense retriever over an index of documents, marginalising over retrieved documents at generation time; the variants differ in whether retrieval happens per token or per sequence.",
+      "year": 2020,
+      "venue": "NeurIPS",
+      "authors": [
+        {
+          "authorId": "5b65cbbb0761ab5f",
+          "name": "Patrick Lewis"
+        }
+      ],
+      "citationCount": 4600,
+      "externalIds": {
+        "CorpusId": 1772435209
+      },
+      "edges_fetched": true,
+      "references": {
+        "7de322a0b46744aa74bacab564a0893201c91e87": {
+          "isInfluential": false,
+          "contexts": [
+            "BM25 remains a strong sparse baseline for passage retrieval."
+          ],
+          "intents": [
+            "background",
+            "method"
+          ]
+        },
+        "50a885925673b9c520695c2b50340b15b1c772bb": {
+          "isInfluential": true,
+          "contexts": [
+            "We use the dense passage retriever of Karpukhin et al. as our non-parametric retriever."
+          ],
+          "intents": [
+            "method"
+          ]
+        },
+        "fd38b6f0f1c130d5b285ff4d870578b78f815144": {
+          "isInfluential": false,
+          "contexts": [
+            "REALM is the closest retrieval-augmented pretraining baseline and is compared against directly."
+          ],
+          "intents": [
+            "method",
+            "evaluation"
+          ]
+        }
+      },
+      "citations": {
+        "7dfb8a6ce8a1459b2c252678a2551610cb685f67": {
+          "isInfluential": false,
+          "contexts": [
+            "Retrieval-augmented generation with a fixed retriever is our strongest baseline."
+          ],
+          "intents": [
+            "method",
+            "baseline"
+          ]
+        },
+        "38ce9bd9884f2ceaccfb73834af4d2dbdb0efa68": {
+          "isInfluential": true,
+          "contexts": [
+            "We follow the retrieval-augmented generation setup but train the retriever end-to-end."
+          ],
+          "intents": [
+            "method"
+          ]
+        },
+        "dc3afbd8e4e5c09194dfef0a3eee54a8598ed69c": {
+          "isInfluential": true,
+          "contexts": [
+            "Active retrieval augmented generation sits on top of a standard retrieval-augmented generation pipeline."
+          ],
+          "intents": [
+            "method",
+            "baseline"
+          ]
+        },
+        "a2f949413379ade92d461bd685902e21d4b9648d": {
+          "isInfluential": true,
+          "contexts": [
+            "Self-reflective retrieval builds on standard retrieval-augmented generation by adding critique tokens."
+          ],
+          "intents": [
+            "method",
+            "baseline"
+          ]
+        },
+        "a16718999598de878de64dde5d05fe1837e81627": {
+          "isInfluential": true,
+          "contexts": [
+            "Corrective retrieval augmented generation wraps a retrieval-augmented generation pipeline with a retrieval evaluator."
+          ],
+          "intents": [
+            "method"
+          ]
+        },
+        "eeae36623067d8b96efa617c3100a4680deba2a9": {
+          "isInfluential": true,
+          "contexts": [
+            "We measure the robustness of a standard retrieval-augmented language model to noisy retrieved documents."
+          ],
+          "intents": [
+            "method",
+            "baseline"
+          ]
+        },
+        "fdf5759dd97783623e1521e011c1c8aa1c536a5c": {
+          "isInfluential": true,
+          "contexts": [
+            "Reranking retrieved passages before generation improves on a plain retrieval-augmented generation baseline."
+          ],
+          "intents": [
+            "method",
+            "baseline"
+          ]
+        },
+        "20153ab0fc2baf18a2b3d06f100f9b162cc26039": {
+          "isInfluential": true,
+          "contexts": [
+            "We evaluate retrieval-augmented generation systems with a reference-free setup."
+          ],
+          "intents": [
+            "method",
+            "evaluation"
+          ]
+        }
+      }
+    },
+    "1dbe92610faeef1b5591df15e407969cc77e219d": {
+      "paperId": "1dbe92610faeef1b5591df15e407969cc77e219d",
+      "title": "ColBERT: Efficient and Effective Passage Search via Contextualized Late Interaction over BERT",
+      "abstract": "Introduces contextualised late interaction over BERT: each token of a document is encoded independently and the query representation is compared against document token embeddings with a MaxSim operator, keeping the retriever end-to-end differentiable.",
+      "year": 2020,
+      "venue": "SIGIR",
+      "authors": [
+        {
+          "authorId": "9b64500ed7489903",
+          "name": "Omar Khattab"
+        }
+      ],
+      "citationCount": 2600,
+      "externalIds": {
+        "CorpusId": 1205024593
+      },
+      "edges_fetched": true,
+      "references": {
+        "7de322a0b46744aa74bacab564a0893201c91e87": {
+          "isInfluential": false,
+          "contexts": [
+            "Late interaction is compared against BM25 on the MS MARCO passage ranking task."
+          ],
+          "intents": [
+            "evaluation"
+          ]
+        }
+      },
+      "citations": {}
+    },
+    "c40462365fb91cdf7a5b1276ff5d82d4891e27ec": {
+      "paperId": "c40462365fb91cdf7a5b1276ff5d82d4891e27ec",
+      "title": "Passage Re-ranking with T5",
+      "abstract": "Casts passage re-ranking as a sequence-to-sequence task, training a T5 model to output the relevance of a query-passage pair as the word true or false, which is cheaper to serve than a BERT-style cross-encoder while ranking more accurately.",
+      "year": 2020,
+      "venue": "arXiv",
+      "authors": [
+        {
+          "authorId": "3d4e4239056c6b72",
+          "name": "Jakob Nielsen"
+        }
+      ],
+      "citationCount": 640,
+      "externalIds": {
+        "CorpusId": 3967610553,
+        "DOI": "10.48550/arXiv.2001.03956"
+      },
+      "edges_fetched": true,
+      "references": {},
+      "citations": {
+        "fdf5759dd97783623e1521e011c1c8aa1c536a5c": {
+          "isInfluential": false,
+          "contexts": [
+            "We compare our pointwise reranker against a T5 sequence-to-sequence reranker."
+          ],
+          "intents": [
+            "method",
+            "baseline"
+          ]
+        }
+      }
+    },
+    "f0d55ad67ad153056c4bdeb299d5e08701408834": {
+      "paperId": "f0d55ad67ad153056c4bdeb299d5e08701408834",
+      "title": "Leveraging Passage Retrieval with Generative Machine Translation for Document Question Answering",
+      "abstract": "Leverages passage retrieval with a generative encoder-decoder: the top-k passages for a question are concatenated as independent input segments to a single encoder-decoder that produces the answer, avoiding the cost of feeding one long concatenated passage set.",
+      "year": 2021,
+      "venue": "EACL",
+      "authors": [
+        {
+          "authorId": "38589a471d78383f",
+          "name": "Gautier Izacard"
+        }
+      ],
+      "citationCount": 1500,
+      "externalIds": {
+        "CorpusId": 480397586,
+        "DOI": "10.18653/v1/2021.eacl-main.74"
+      },
+      "edges_fetched": true,
+      "references": {
+        "50a885925673b9c520695c2b50340b15b1c772bb": {
+          "isInfluential": true,
+          "contexts": [
+            "We retrieve top-k passages with the dense retriever of Karpukhin et al."
+          ],
+          "intents": [
+            "method"
+          ]
+        },
+        "58f3fd7cc38198948050281cad0f1f972ffda46a": {
+          "isInfluential": false,
+          "contexts": [
+            "Retrieved with a pretrained sentence encoder baseline."
+          ],
+          "intents": [
+            "method"
+          ]
+        }
+      },
+      "citations": {
+        "38ce9bd9884f2ceaccfb73834af4d2dbdb0efa68": {
+          "isInfluential": false,
+          "contexts": [
+            "We use the same passage concatenation strategy as the fusion-in-decoder baseline."
+          ],
+          "intents": [
+            "method"
+          ]
+        }
+      }
+    },
+    "520c52ad400063e452055acd026b5307bc1c6fb0": {
+      "paperId": "520c52ad400063e452055acd026b5307bc1c6fb0",
+      "title": "Unsupervised Dense Information Retrieval with Contrastive Learning",
+      "abstract": "Trains a dense retriever with a contrastive objective on large batches of unsupervised text using in-batch negatives, producing a general-purpose retriever that transfers to knowledge-intensive tasks without any labelled question-passage pairs.",
+      "year": 2023,
+      "venue": "TMLR",
+      "authors": [
+        {
+          "authorId": "a3cbbce3748aec5e",
+          "name": "Gautier Izacard"
+        }
+      ],
+      "citationCount": 1800,
+      "externalIds": {
+        "CorpusId": 3309077439
+      },
+      "edges_fetched": true,
+      "references": {
+        "7de322a0b46744aa74bacab564a0893201c91e87": {
+          "isInfluential": true,
+          "contexts": [
+            "Unsupervised dense retrievers are compared against BM25 and against supervised dense baselines."
+          ],
+          "intents": [
+            "background",
+            "evaluation"
+          ]
+        },
+        "e94304919550b4ccdb6097e53192b22a02903acf": {
+          "isInfluential": false,
+          "contexts": [
+            "Retrieved with a pretrained sentence encoder baseline."
+          ],
+          "intents": [
+            "method"
+          ]
+        },
+        "5d3d2b0b1fcdaa4013b81d0028cf3d43d3618623": {
+          "isInfluential": false,
+          "contexts": [
+            "Retrieved with a pretrained sentence encoder baseline."
+          ],
+          "intents": [
+            "method"
+          ]
+        }
+      },
+      "citations": {
+        "38ce9bd9884f2ceaccfb73834af4d2dbdb0efa68": {
+          "isInfluential": true,
+          "contexts": [
+            "Our retriever is initialised from the unsupervised Contriever checkpoint."
+          ],
+          "intents": [
+            "method"
+          ]
+        }
+      }
+    },
+    "38ce9bd9884f2ceaccfb73834af4d2dbdb0efa68": {
+      "paperId": "38ce9bd9884f2ceaccfb73834af4d2dbdb0efa68",
+      "title": "Few-shot Learning with Retrieval Augmented Language Models",
+      "abstract": "Studies retrieval-augmented language models across tasks and model sizes, training the retriever and the sequence-to-sequence reader end-to-end, and finds that the quality and diversity of the retrieved passages matter more than the raw size of the corpus.",
+      "year": 2023,
+      "venue": "JMLR",
+      "authors": [
+        {
+          "authorId": "02c73216872d31aa",
+          "name": "Gautier Izacard"
+        }
+      ],
+      "citationCount": 1500,
+      "externalIds": {
+        "CorpusId": 3974689899
+      },
+      "edges_fetched": true,
+      "references": {
+        "50a885925673b9c520695c2b50340b15b1c772bb": {
+          "isInfluential": false,
+          "contexts": [
+            "We compare our learned retriever against a dense passage retriever baseline."
+          ],
+          "intents": [
+            "method"
+          ]
+        },
+        "fd38b6f0f1c130d5b285ff4d870578b78f815144": {
+          "isInfluential": false,
+          "contexts": [
+            "REALM is the pre-training baseline we extend to few-shot learning."
+          ],
+          "intents": [
+            "method"
+          ]
+        },
+        "c76e2b1077a847dca478f6411da7086ae1bf6c3d": {
+          "isInfluential": true,
+          "contexts": [
+            "We follow the retrieval-augmented generation setup but train the retriever end-to-end."
+          ],
+          "intents": [
+            "method"
+          ]
+        },
+        "f0d55ad67ad153056c4bdeb299d5e08701408834": {
+          "isInfluential": false,
+          "contexts": [
+            "We use the same passage concatenation strategy as the fusion-in-decoder baseline."
+          ],
+          "intents": [
+            "method"
+          ]
+        },
+        "520c52ad400063e452055acd026b5307bc1c6fb0": {
+          "isInfluential": true,
+          "contexts": [
+            "Our retriever is initialised from the unsupervised Contriever checkpoint."
+          ],
+          "intents": [
+            "method"
+          ]
+        }
+      },
+      "citations": {
+        "a2f949413379ade92d461bd685902e21d4b9648d": {
+          "isInfluential": false,
+          "contexts": [
+            "We follow the retrieval-augmented pretraining setup of Atlas for our base model."
+          ],
+          "intents": [
+            "method",
+            "baseline"
+          ]
+        },
+        "01904af228e24a08a9ba8d79d074e7cf48d21532": {
+          "isInfluential": false,
+          "contexts": [
+            "We follow the few-shot evaluation protocol of Atlas."
+          ],
+          "intents": [
+            "background"
+          ]
+        }
+      }
+    },
+    "21cfcbfff23f20da212a45084ff807e89713d41e": {
+      "paperId": "21cfcbfff23f20da212a45084ff807e89713d41e",
+      "title": "Improving Passage Retrieval with Zero-Shot Question Generation",
+      "abstract": "Improves passage retrieval with zero-shot question generation: an instruction-tuned text-to-text model generates a hypothetical document for a query, and that hypothetical document, which need not be factually correct, is used to retrieve real passages.",
+      "year": 2022,
+      "venue": "EMNLP",
+      "authors": [
+        {
+          "authorId": "791b5ffb74194e60",
+          "name": "Luyu Gao"
+        }
+      ],
+      "citationCount": 900,
+      "externalIds": {
+        "CorpusId": 3036500619,
+        "DOI": "10.18653/v1/2022.emnlp-main.298"
+      },
+      "edges_fetched": true,
+      "references": {
+        "50a885925673b9c520695c2b50340b15b1c772bb": {
+          "isInfluential": true,
+          "contexts": [
+            "Our hypothetical documents are indexed and retrieved with the same dense encoder used for the original queries."
+          ],
+          "intents": [
+            "method"
+          ]
+        },
+        "e94304919550b4ccdb6097e53192b22a02903acf": {
+          "isInfluential": false,
+          "contexts": [
+            "Retrieved with a pretrained sentence encoder baseline."
+          ],
+          "intents": [
+            "method"
+          ]
+        }
+      },
+      "citations": {
+        "ff0c8d1946af9c38072dbccdb3b062c7efe67aa6": {
+          "isInfluential": false,
+          "contexts": [
+            "Following the hypothetical document idea, we generate a passage for each query but use it as a training target rather than at inference time."
+          ],
+          "intents": [
+            "method",
+            "background"
+          ]
+        },
+        "68fabd35248133e555e61b89f26cd924ebe296ea": {
+          "isInfluential": false,
+          "contexts": [
+            "We build on hypothetical document generation and use the generated knowledge at both training and inference time."
+          ],
+          "intents": [
+            "method",
+            "background"
+          ]
+        }
+      }
+    },
+    "aafd4694d20bd58b3ef2400cd8181fe1360ba62f": {
+      "paperId": "aafd4694d20bd58b3ef2400cd8181fe1360ba62f",
+      "title": "Measuring and Narrowing the Compositionality Gap in Language Models",
+      "abstract": "Decomposes a multi-hop question into follow-up questions that are answered sequentially using search engine results, so the final answer is synthesised from explicit intermediate evidence rather than from a single retrieval step.",
+      "year": 2022,
+      "venue": "ICLR",
+      "authors": [
+        {
+          "authorId": "831953ff42ce9ff0",
+          "name": "Ofir Press"
+        }
+      ],
+      "citationCount": 1900,
+      "externalIds": {
+        "CorpusId": 3446354707
+      },
+      "edges_fetched": true,
+      "references": {},
+      "citations": {
+        "593405f0fe70da5edb175816c15978a7b396a766": {
+          "isInfluential": false,
+          "contexts": [
+            "Self-Ask decomposes multi-hop questions with search engine calls, which is the closest iterative baseline."
+          ],
+          "intents": [
+            "method",
+            "baseline"
+          ]
+        },
+        "dc3afbd8e4e5c09194dfef0a3eee54a8598ed69c": {
+          "isInfluential": false,
+          "contexts": [
+            "We follow the decomposition setup of Self-Ask for multi-hop question answering."
+          ],
+          "intents": [
+            "baseline"
+          ]
+        }
+      }
+    },
+    "593405f0fe70da5edb175816c15978a7b396a766": {
+      "paperId": "593405f0fe70da5edb175816c15978a7b396a766",
+      "title": "ReAct: Synergizing Reasoning and Acting in Language Models",
+      "abstract": "Interleaves reasoning traces with task-specific actions in a language model so that external information can be consulted and reasoned over, emitting both the reasoning trace and the action at each step.",
+      "year": 2023,
+      "venue": "ICLR",
+      "authors": [
+        {
+          "authorId": "70500c39222a48a4",
+          "name": "Shunyu Yao"
+        }
+      ],
+      "citationCount": 5100,
+      "externalIds": {
+        "CorpusId": 1803619472
+      },
+      "edges_fetched": true,
+      "references": {
+        "aafd4694d20bd58b3ef2400cd8181fe1360ba62f": {
+          "isInfluential": false,
+          "contexts": [
+            "Self-Ask decomposes multi-hop questions with search engine calls, which is the closest iterative baseline."
+          ],
+          "intents": [
+            "method",
+            "baseline"
+          ]
+        },
+        "62bc69c3200cc39496d84c6089ebe23dafceff4a": {
+          "isInfluential": false,
+          "contexts": [
+            "Retrieved with a pretrained sentence encoder baseline."
+          ],
+          "intents": [
+            "method"
+          ]
+        }
+      },
+      "citations": {}
+    },
+    "7dfb8a6ce8a1459b2c252678a2551610cb685f67": {
+      "paperId": "7dfb8a6ce8a1459b2c252678a2551610cb685f67",
+      "title": "Interleaving Retrieval with Chain-of-Thought for Knowledge-Intensive Multi-Step Questions",
+      "abstract": "Interleaves a retriever with chain-of-thought prompting: retrieved passages are fed back into the language model to generate a chain of thought, and the generated chain of thought selects the next passage to retrieve, forming a closed loop.",
+      "year": 2023,
+      "venue": "ACL",
+      "authors": [
+        {
+          "authorId": "15d16028714678a8",
+          "name": "Harsh Trivedi"
+        }
+      ],
+      "citationCount": 700,
+      "externalIds": {
+        "CorpusId": 2094555554,
+        "DOI": "10.18653/v1/2023.acl-long.34"
+      },
+      "edges_fetched": true,
+      "references": {
+        "50a885925673b9c520695c2b50340b15b1c772bb": {
+          "isInfluential": true,
+          "contexts": [
+            "We initialise our retriever from the released dense passage retrieval checkpoint."
+          ],
+          "intents": [
+            "method"
+          ]
+        },
+        "c76e2b1077a847dca478f6411da7086ae1bf6c3d": {
+          "isInfluential": false,
+          "contexts": [
+            "Retrieval-augmented generation with a fixed retriever is our strongest baseline."
+          ],
+          "intents": [
+            "method",
+            "baseline"
+          ]
+        }
+      },
+      "citations": {
+        "a16718999598de878de64dde5d05fe1837e81627": {
+          "isInfluential": false,
+          "contexts": [
+            "We evaluate against multi-step retrieval baselines for query decomposition."
+          ],
+          "intents": [
+            "baseline",
+            "evaluation"
+          ]
+        }
+      }
+    },
+    "dc3afbd8e4e5c09194dfef0a3eee54a8598ed69c": {
+      "paperId": "dc3afbd8e4e5c09194dfef0a3eee54a8598ed69c",
+      "title": "Active Retrieval Augmented Generation",
+      "abstract": "Active retrieval augmented generation uses the model to forecast the sentence it is about to generate, then compares that forecast against candidate passages to obtain a confidence signal that decides when a retrieval query should actually be issued.",
+      "year": 2023,
+      "venue": "EMNLP",
+      "authors": [
+        {
+          "authorId": "04d75d9d1b163534",
+          "name": "Zhengbao Jiang"
+        }
+      ],
+      "citationCount": 600,
+      "externalIds": {
+        "CorpusId": 2026754853,
+        "DOI": "10.18653/v1/2023.emnlp-main.657"
+      },
+      "edges_fetched": true,
+      "references": {
+        "aafd4694d20bd58b3ef2400cd8181fe1360ba62f": {
+          "isInfluential": false,
+          "contexts": [
+            "We follow the decomposition setup of Self-Ask for multi-hop question answering."
+          ],
+          "intents": [
+            "baseline"
+          ]
+        },
+        "c76e2b1077a847dca478f6411da7086ae1bf6c3d": {
+          "isInfluential": true,
+          "contexts": [
+            "Active retrieval augmented generation sits on top of a standard retrieval-augmented generation pipeline."
+          ],
+          "intents": [
+            "method",
+            "baseline"
+          ]
+        }
+      },
+      "citations": {}
+    },
+    "20153ab0fc2baf18a2b3d06f100f9b162cc26039": {
+      "paperId": "20153ab0fc2baf18a2b3d06f100f9b162cc26039",
+      "title": "RAGAS: Automated Evaluation of Retrieval Augmented Generation",
+      "abstract": "Proposes reference-free evaluation of retrieval-augmented generation with an LLM-as-judge setup, scoring faithfulness and answer relevance from the generated answer plus retrieved contexts, and context precision and recall from the retrieved contexts alone.",
+      "year": 2023,
+      "venue": "EACL",
+      "authors": [
+        {
+          "authorId": "02fb27aa847bced1",
+          "name": "Shishir G. Es"
+        }
+      ],
+      "citationCount": 1400,
+      "externalIds": {
+        "CorpusId": 1694273988,
+        "DOI": "10.18653/v1/2023.eacl-demo.16"
+      },
+      "edges_fetched": true,
+      "references": {
+        "c76e2b1077a847dca478f6411da7086ae1bf6c3d": {
+          "isInfluential": true,
+          "contexts": [
+            "We evaluate retrieval-augmented generation systems with a reference-free setup."
+          ],
+          "intents": [
+            "method",
+            "evaluation"
+          ]
+        }
+      },
+      "citations": {
+        "a16718999598de878de64dde5d05fe1837e81627": {
+          "isInfluential": true,
+          "contexts": [
+            "We score faithfulness and context precision with reference-free RAGAS metrics."
+          ],
+          "intents": [
+            "method",
+            "evaluation"
+          ]
+        },
+        "fdf5759dd97783623e1521e011c1c8aa1c536a5c": {
+          "isInfluential": true,
+          "contexts": [
+            "We report the RAGAS metrics for faithfulness and answer relevance."
+          ],
+          "intents": [
+            "evaluation"
+          ]
+        },
+        "68fabd35248133e555e61b89f26cd924ebe296ea": {
+          "isInfluential": false,
+          "contexts": [
+            "We report RAGAS scores for our system and the dense retrieval baseline."
+          ],
+          "intents": [
+            "evaluation"
+          ]
+        }
+      }
+    },
+    "eeae36623067d8b96efa617c3100a4680deba2a9": {
+      "paperId": "eeae36623067d8b96efa617c3100a4680deba2a9",
+      "title": "Chain-of-Note: Enhancing Robustness in Retrieval-Augmented Language Models",
+      "abstract": "Enhances the robustness of retrieval-augmented language models against noisy retrieved documents by adding explicit notes that summarise the key information in the retrieved documents to the prompt, so the model can reason about whether the notes actually answer the question.",
+      "year": 2023,
+      "venue": "arXiv",
+      "authors": [
+        {
+          "authorId": "e34bde857ec73312",
+          "name": "Tianyu Yu"
+        }
+      ],
+      "citationCount": 500,
+      "externalIds": {
+        "CorpusId": 1881538306,
+        "DOI": "10.48550/arXiv.2309.11462"
+      },
+      "edges_fetched": true,
+      "references": {
+        "c76e2b1077a847dca478f6411da7086ae1bf6c3d": {
+          "isInfluential": true,
+          "contexts": [
+            "We measure the robustness of a standard retrieval-augmented language model to noisy retrieved documents."
+          ],
+          "intents": [
+            "method",
+            "baseline"
+          ]
+        }
+      },
+      "citations": {
+        "a16718999598de878de64dde5d05fe1837e81627": {
+          "isInfluential": false,
+          "contexts": [
+            "Chain-of-note prompting is a related approach to handling noisy retrieval."
+          ],
+          "intents": [
+            "baseline"
+          ]
+        }
+      }
+    },
+    "ff0c8d1946af9c38072dbccdb3b062c7efe67aa6": {
+      "paperId": "ff0c8d1946af9c38072dbccdb3b062c7efe67aa6",
+      "title": "Query Expansion with Large Language Models",
+      "abstract": "Expands queries using large language models by generating a short hypothetical passage for each query and training a dense retriever to place the query close to that passage, which improves first-stage retrieval without labels.",
+      "year": 2023,
+      "venue": "EMNLP",
+      "authors": [
+        {
+          "authorId": "e34768654555486b",
+          "name": "Liang Wang"
+        }
+      ],
+      "citationCount": 700,
+      "externalIds": {
+        "CorpusId": 7481634,
+        "DOI": "10.18653/v1/2023.emnlp-main.585"
+      },
+      "edges_fetched": true,
+      "references": {
+        "50a885925673b9c520695c2b50340b15b1c772bb": {
+          "isInfluential": false,
+          "contexts": [
+            "Dense passage retrieval is our main baseline retriever."
+          ],
+          "intents": [
+            "method",
+            "baseline"
+          ]
+        },
+        "21cfcbfff23f20da212a45084ff807e89713d41e": {
+          "isInfluential": false,
+          "contexts": [
+            "Following the hypothetical document idea, we generate a passage for each query but use it as a training target rather than at inference time."
+          ],
+          "intents": [
+            "method",
+            "background"
+          ]
+        },
+        "e94304919550b4ccdb6097e53192b22a02903acf": {
+          "isInfluential": false,
+          "contexts": [
+            "Retrieved with a pretrained sentence encoder baseline."
+          ],
+          "intents": [
+            "method"
+          ]
+        }
+      },
+      "citations": {}
+    },
+    "a2f949413379ade92d461bd685902e21d4b9648d": {
+      "paperId": "a2f949413379ade92d461bd685902e21d4b9648d",
+      "title": "Self-RAG: Learning to Retrieve, Generate, and Critique through Self-Reflection",
+      "abstract": "Trains a retriever and a generator with a reflection token that lets the model decide on demand whether to retrieve and whether each retrieved passage and each generated segment is relevant, so retrieval is skipped when the parametric knowledge already suffices.",
+      "year": 2024,
+      "venue": "ICLR",
+      "authors": [
+        {
+          "authorId": "9ebdd4f032309755",
+          "name": "Akari Asai"
+        }
+      ],
+      "citationCount": 2100,
+      "externalIds": {
+        "CorpusId": 4059279492
+      },
+      "edges_fetched": true,
+      "references": {
+        "c76e2b1077a847dca478f6411da7086ae1bf6c3d": {
+          "isInfluential": true,
+          "contexts": [
+            "Self-reflective retrieval builds on standard retrieval-augmented generation by adding critique tokens."
+          ],
+          "intents": [
+            "method",
+            "baseline"
+          ]
+        },
+        "38ce9bd9884f2ceaccfb73834af4d2dbdb0efa68": {
+          "isInfluential": false,
+          "contexts": [
+            "We follow the retrieval-augmented pretraining setup of Atlas for our base model."
+          ],
+          "intents": [
+            "method",
+            "baseline"
+          ]
+        }
+      },
+      "citations": {}
+    },
+    "332cf74c354ca1cb0e7ff8ae3d29f52e5f5103bc": {
+      "paperId": "332cf74c354ca1cb0e7ff8ae3d29f52e5f5103bc",
+      "title": "Lost in the Middle: How Language Models Use Long Contexts",
+      "abstract": "Shows that language models use long input contexts poorly: performance on multi-document question answering and synthetic key-value retrieval degrades sharply when the relevant information sits in the middle of the input rather than at the start or the end.",
+      "year": 2024,
+      "venue": "TACL",
+      "authors": [
+        {
+          "authorId": "9a7bb0596c7b2946",
+          "name": "Nelson F. Liu"
+        }
+      ],
+      "citationCount": 3200,
+      "externalIds": {
+        "CorpusId": 1532107920,
+        "DOI": "10.1162/tacl_a_00638"
+      },
+      "edges_fetched": true,
+      "references": {},
+      "citations": {
+        "a16718999598de878de64dde5d05fe1837e81627": {
+          "isInfluential": false,
+          "contexts": [
+            "We discuss the limits of stuffing retrieved passages into a long context."
+          ],
+          "intents": [
+            "background",
+            "evaluation"
+          ]
+        },
+        "fd205c688c9fa88ec252e4d24c03fc44b6dc8eb9": {
+          "isInfluential": true,
+          "contexts": [
+            "Long-context baselines are evaluated under the setting documented by Liu et al."
+          ],
+          "intents": [
+            "background",
+            "evaluation"
+          ]
+        }
+      }
+    },
+    "a16718999598de878de64dde5d05fe1837e81627": {
+      "paperId": "a16718999598de878de64dde5d05fe1837e81627",
+      "title": "Corrective Retrieval Augmented Generation",
+      "abstract": "Corrective retrieval augmented generation adds a lightweight retrieval evaluator to detect and correct incorrect retrievals: a query judged relevant-poor triggers a web search, and retrieved documents are decomposed and reranked into a more reliable evidence set.",
+      "year": 2024,
+      "venue": "arXiv",
+      "authors": [
+        {
+          "authorId": "2f38ea81163db53d",
+          "name": "Shi-Qi Yan"
+        }
+      ],
+      "citationCount": 1300,
+      "externalIds": {
+        "CorpusId": 2510574229,
+        "DOI": "10.48550/arXiv.2401.15884"
+      },
+      "edges_fetched": true,
+      "references": {
+        "c76e2b1077a847dca478f6411da7086ae1bf6c3d": {
+          "isInfluential": true,
+          "contexts": [
+            "Corrective retrieval augmented generation wraps a retrieval-augmented generation pipeline with a retrieval evaluator."
+          ],
+          "intents": [
+            "method"
+          ]
+        },
+        "7dfb8a6ce8a1459b2c252678a2551610cb685f67": {
+          "isInfluential": false,
+          "contexts": [
+            "We evaluate against multi-step retrieval baselines for query decomposition."
+          ],
+          "intents": [
+            "baseline",
+            "evaluation"
+          ]
+        },
+        "eeae36623067d8b96efa617c3100a4680deba2a9": {
+          "isInfluential": false,
+          "contexts": [
+            "Chain-of-note prompting is a related approach to handling noisy retrieval."
+          ],
+          "intents": [
+            "baseline"
+          ]
+        },
+        "20153ab0fc2baf18a2b3d06f100f9b162cc26039": {
+          "isInfluential": true,
+          "contexts": [
+            "We score faithfulness and context precision with reference-free RAGAS metrics."
+          ],
+          "intents": [
+            "method",
+            "evaluation"
+          ]
+        },
+        "332cf74c354ca1cb0e7ff8ae3d29f52e5f5103bc": {
+          "isInfluential": false,
+          "contexts": [
+            "We discuss the limits of stuffing retrieved passages into a long context."
+          ],
+          "intents": [
+            "background",
+            "evaluation"
+          ]
+        }
+      },
+      "citations": {}
+    },
+    "fd205c688c9fa88ec252e4d24c03fc44b6dc8eb9": {
+      "paperId": "fd205c688c9fa88ec252e4d24c03fc44b6dc8eb9",
+      "title": "RAPTOR: Recursive Abstractive Processing for Tree-Organized Retrieval",
+      "abstract": "Recursive abstractive processing for tree-organized retrieval builds a corpus tree by recursively clustering passages and summarising each cluster, so retrieval can operate at several levels of abstraction and answer both specific and global questions.",
+      "year": 2024,
+      "venue": "ICLR",
+      "authors": [
+        {
+          "authorId": "9cd272fdfbf3b7d1",
+          "name": "Parth Sarthi"
+        }
+      ],
+      "citationCount": 1100,
+      "externalIds": {
+        "CorpusId": 2885964506
+      },
+      "edges_fetched": true,
+      "references": {
+        "332cf74c354ca1cb0e7ff8ae3d29f52e5f5103bc": {
+          "isInfluential": true,
+          "contexts": [
+            "Long-context baselines are evaluated under the setting documented by Liu et al."
+          ],
+          "intents": [
+            "background",
+            "evaluation"
+          ]
+        }
+      },
+      "citations": {}
+    },
+    "01904af228e24a08a9ba8d79d074e7cf48d21532": {
+      "paperId": "01904af228e24a08a9ba8d79d074e7cf48d21532",
+      "title": "From Local to Global: A Graph RAG Approach to Query-Focused Summarization",
+      "abstract": "Builds an entity knowledge graph over a corpus, precomputes community summaries with graph community detection, and maps a query onto a set of relevant communities so that global sensemaking questions can be answered, at a much higher token cost than local vector search.",
+      "year": 2024,
+      "venue": "arXiv",
+      "authors": [
+        {
+          "authorId": "d93383be5589c051",
+          "name": "Darren Edge"
+        }
+      ],
+      "citationCount": 1700,
+      "externalIds": {
+        "CorpusId": 2308912461,
+        "DOI": "10.48550/arXiv.2404.16130"
+      },
+      "edges_fetched": true,
+      "references": {
+        "68fabd35248133e555e61b89f26cd924ebe296ea": {
+          "isInfluential": false,
+          "contexts": [
+            "We contrast graph-based indexing with query-side generative augmentation."
+          ],
+          "intents": [
+            "background",
+            "baseline"
+          ]
+        },
+        "38ce9bd9884f2ceaccfb73834af4d2dbdb0efa68": {
+          "isInfluential": false,
+          "contexts": [
+            "We follow the few-shot evaluation protocol of Atlas."
+          ],
+          "intents": [
+            "background"
+          ]
+        },
+        "8e0418f6b2132f5555e5cc38678f8218307351a8": {
+          "isInfluential": false,
+          "contexts": [
+            "Retrieved with a pretrained sentence encoder baseline."
+          ],
+          "intents": [
+            "method"
+          ]
+        }
+      },
+      "citations": {}
+    },
+    "fdf5759dd97783623e1521e011c1c8aa1c536a5c": {
+      "paperId": "fdf5759dd97783623e1521e011c1c8aa1c536a5c",
+      "title": "RankRAG: Unifying Context Ranking with Retrieval-Augmented Generation in LLMs",
+      "abstract": "Unsupervised fine-tunes a single LLM as both a pointwise passage reranker and a listwise generator, distilling the LLM's own ranking knowledge so that one model handles both reranking retrieved passages and generating the final grounded answer.",
+      "year": 2024,
+      "venue": "arXiv",
+      "authors": [
+        {
+          "authorId": "0a5138f416620ce1",
+          "name": "Zihao Yu"
+        }
+      ],
+      "citationCount": 500,
+      "externalIds": {
+        "CorpusId": 713268336,
+        "DOI": "10.48550/arXiv.2407.02485"
+      },
+      "edges_fetched": true,
+      "references": {
+        "c40462365fb91cdf7a5b1276ff5d82d4891e27ec": {
+          "isInfluential": false,
+          "contexts": [
+            "We compare our pointwise reranker against a T5 sequence-to-sequence reranker."
+          ],
+          "intents": [
+            "method",
+            "baseline"
+          ]
+        },
+        "c76e2b1077a847dca478f6411da7086ae1bf6c3d": {
+          "isInfluential": true,
+          "contexts": [
+            "Reranking retrieved passages before generation improves on a plain retrieval-augmented generation baseline."
+          ],
+          "intents": [
+            "method",
+            "baseline"
+          ]
+        },
+        "20153ab0fc2baf18a2b3d06f100f9b162cc26039": {
+          "isInfluential": true,
+          "contexts": [
+            "We report the RAGAS metrics for faithfulness and answer relevance."
+          ],
+          "intents": [
+            "evaluation"
+          ]
+        },
+        "58f3fd7cc38198948050281cad0f1f972ffda46a": {
+          "isInfluential": false,
+          "contexts": [
+            "Retrieved with a pretrained sentence encoder baseline."
+          ],
+          "intents": [
+            "method"
+          ]
+        }
+      },
+      "citations": {}
+    },
+    "68fabd35248133e555e61b89f26cd924ebe296ea": {
+      "paperId": "68fabd35248133e555e61b89f26cd924ebe296ea",
+      "title": "Generation-Augmented Retrieval (GAR): Improving Dense Retrieval with Generative Knowledge",
+      "abstract": "Generation-augmented retrieval uses the language model's parametric knowledge as a supplement to the corpus: the query is augmented with generated knowledge that is fused with the query embedding for retrieval, which helps tail queries where corpus evidence is weak.",
+      "year": 2024,
+      "venue": "arXiv",
+      "authors": [
+        {
+          "authorId": "a823818bb2941ac0",
+          "name": "Xiaohu Su"
+        }
+      ],
+      "citationCount": 250,
+      "externalIds": {
+        "CorpusId": 1891405155,
+        "DOI": "10.48550/arXiv.2406.13151"
+      },
+      "edges_fetched": true,
+      "references": {
+        "21cfcbfff23f20da212a45084ff807e89713d41e": {
+          "isInfluential": false,
+          "contexts": [
+            "We build on hypothetical document generation and use the generated knowledge at both training and inference time."
+          ],
+          "intents": [
+            "method",
+            "background"
+          ]
+        },
+        "20153ab0fc2baf18a2b3d06f100f9b162cc26039": {
+          "isInfluential": false,
+          "contexts": [
+            "We report RAGAS scores for our system and the dense retrieval baseline."
+          ],
+          "intents": [
+            "evaluation"
+          ]
+        }
+      },
+      "citations": {
+        "01904af228e24a08a9ba8d79d074e7cf48d21532": {
+          "isInfluential": false,
+          "contexts": [
+            "We contrast graph-based indexing with query-side generative augmentation."
+          ],
+          "intents": [
+            "background",
+            "baseline"
+          ]
+        }
+      }
+    }
+  },
+  "neighbors": {
+    "e94304919550b4ccdb6097e53192b22a02903acf": {
+      "paperId": "e94304919550b4ccdb6097e53192b22a02903acf",
+      "title": "Sentence-BERT: Sentence Embeddings using Siamese BERT-Transformers",
+      "year": 2019,
+      "venue": "EMNLP",
+      "authors": [
+        {
+          "authorId": "7e75a89411c6b50f",
+          "name": "Nils Reimers"
+        }
+      ],
+      "citationCount": 26000,
+      "externalIds": {},
+      "abstract": null
+    },
+    "7be11302d35f9d2f7e8138f7abd2272a04191912": {
+      "paperId": "7be11302d35f9d2f7e8138f7abd2272a04191912",
+      "title": "RocketQA: An Optimized Training Approach to Dense Passage Retrieval for Open-Domain Question Answering",
+      "year": 2021,
+      "venue": "NAACL",
+      "authors": [
+        {
+          "authorId": "1ca0623538e1bd5b",
+          "name": "Biao Luan"
+        }
+      ],
+      "citationCount": 300,
+      "externalIds": {},
+      "abstract": null
+    },
+    "5d3d2b0b1fcdaa4013b81d0028cf3d43d3618623": {
+      "paperId": "5d3d2b0b1fcdaa4013b81d0028cf3d43d3618623",
+      "title": "Learning to Retrieve Passages without Supervision",
+      "year": 2021,
+      "venue": "NAACL",
+      "authors": [
+        {
+          "authorId": "1944bc645721c62b",
+          "name": "Fabio Petroni"
+        }
+      ],
+      "citationCount": 250,
+      "externalIds": {},
+      "abstract": null
+    },
+    "62bc69c3200cc39496d84c6089ebe23dafceff4a": {
+      "paperId": "62bc69c3200cc39496d84c6089ebe23dafceff4a",
+      "title": "WebGPT: Browser-assisted question-answering with human feedback",
+      "year": 2021,
+      "venue": "arXiv",
+      "authors": [
+        {
+          "authorId": "cb015dbfc1ea2f1c",
+          "name": "Reiichiro Nakano"
+        }
+      ],
+      "citationCount": 900,
+      "externalIds": {},
+      "abstract": null
+    },
+    "8e0418f6b2132f5555e5cc38678f8218307351a8": {
+      "paperId": "8e0418f6b2132f5555e5cc38678f8218307351a8",
+      "title": "Internet-Augmented Language Models through Few-Shot Prompting for Open-Domain Question Answering",
+      "year": 2022,
+      "venue": "arXiv",
+      "authors": [
+        {
+          "authorId": "c128048272e847dc",
+          "name": "Bernd Bohnet"
+        }
+      ],
+      "citationCount": 700,
+      "externalIds": {},
+      "abstract": null
+    },
+    "58f3fd7cc38198948050281cad0f1f972ffda46a": {
+      "paperId": "58f3fd7cc38198948050281cad0f1f972ffda46a",
+      "title": "A Thorough Comparison of Cross-Encoders and Bi-Encoders for IR",
+      "year": 2020,
+      "venue": "arXiv",
+      "authors": [
+        {
+          "authorId": "1d7d794e5d0edd9a",
+          "name": "Aidan Cohan"
+        }
+      ],
+      "citationCount": 400,
+      "externalIds": {},
+      "abstract": null
+    }
+  }
+}

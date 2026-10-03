@@ -1,0 +1,47 @@
+# vocab.yaml -- named keyword vocabularies.
+#
+# This file holds ONLY data: lists of terms. No logic lives here.
+# Rules in schema.yaml reference a vocabulary by `name`.
+#
+# ---------------------------------------------------------------------------
+# FORMAT
+# ---------------------------------------------------------------------------
+# vocabularies:
+#   - name:        <string>   REQUIRED. The id rules refer to, e.g. `retrieval_methods`.
+#     description: <string>   Optional prose, carried into knowledge_state.json.
+#     terms:       [string]   REQUIRED. Matched case-insensitively on word
+#                              boundaries, so multi-word phrases work as-is.
+#
+# Notes on matching:
+#   * "dense passage retrieval" matches "...uses Dense Passage Retrieval here..."
+#   * "dpr" will NOT match "dprs" (word boundary), but WILL match "(DPR)".
+#   * Prefer lowercase; capitalisation is normalised before matching.
+#   * Put a term in more than one vocabulary if two rules need it separately --
+#     duplicating a term is cheaper than inventing a shared parent vocabulary,
+#     because it keeps each rule's evidence self-contained.
+#
+# Until you replace the placeholders below, the loader refuses to run and
+# points at any remaining `TODO:` line.
+# ---------------------------------------------------------------------------
+
+vocabularies:
+
+  # ===================== REPLACE ME =====================
+  # Worked example showing the shape. Delete it once you have your own.
+  - name: EXAMPLE_only_delete_me
+    description: >
+      Placeholder used to demonstrate the file format. Contains a couple of
+      retrieval terms purely to show that multi-word phrases are allowed.
+    terms:
+      - dense passage retrieval
+      - bm25
+
+  # ===================== YOUR VOCABULARIES =====================
+  # One block per vocabulary. `name` is what you will reference from schema.yaml.
+  #
+  # - name: TODO
+  #   description: >
+  #     TODO: one or two sentences on what this vocabulary is for. This text is
+  #     copied verbatim into knowledge_state.json so the export explains itself.
+  #   terms:
+  #     - TODO

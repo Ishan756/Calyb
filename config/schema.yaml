@@ -1,0 +1,158 @@
+# schema.yaml -- entity types, relationship types, and the rules that map
+# papers onto them.
+#
+# NOTHING in this file is inferred by the code. Every node type, edge type,
+# threshold and mapping rule below is executed exactly as written. If a section
+# is empty, the corresponding part of the graph is empty -- the engine never
+# invents a type.
+#
+# Until you replace the placeholders below, the loader refuses to run and points
+# at any remaining `TODO:` line.
+#
+# ===========================================================================
+# 1. fetch:  read by src/fetch_papers.py (already implemented)
+# ===========================================================================
+fetch:
+  seed_queries:
+    - TODO
+  num_papers: TODO          # int, target corpus size (the brief says 50-100)
+  year_from: TODO           # int or null
+  year_to: TODO             # int or null
+
+  # Optional tuning knobs; the defaults shown are what the code uses.
+  request_delay_seconds: 1.0   # polite spacing between API calls
+  max_retries: 6               # retries for 429 / 5xx / connection errors
+  fetch_edges: true            # false skips citations+references (much faster)
+
+# ===========================================================================
+# 2. node_types:  the entity types, and why each exists
+# ===========================================================================
+# name:        <string>  REQUIRED. The type label written onto every node.
+# description: <string>  REQUIRED-ish. Goes into the export so a reader can see
+#                         why the type exists without opening any code.
+# source:      Paper | CitationEdge
+#              Which raw record the node is materialised from. `Paper` nodes come
+#              from data/raw_papers.json `papers`; `CitationEdge` nodes come from
+#              the citation edges attached to those papers. If your design has no
+#              edge-entity, use `Paper` for everything.
+# properties:  [string]   Which raw fields to copy onto the node
+#                         (paperId, title, abstract, year, authors, venue,
+#                          citationCount, externalIds).
+#
+# node_types:
+#   - name: TODO
+#     description: TODO
+#     source: Paper
+#     properties: [paperId, title, year]
+#
+# NOTE: node types do NOT have to be a fixed list of two. Add one block per
+# entity type in your design. The engine has no built-in types at all.
+node_types: []
+
+# ===========================================================================
+# 3. edge_types:  the relationship types, and the rule that creates each
+# ===========================================================================
+# name:        <string>  REQUIRED.
+# description: <string>  REQUIRED-ish. Explain the relationship in prose.
+# source:      <node type name>   the node the edge points away from
+# target:      <node type name>   the node the edge points to
+#
+# rule:
+#   target: vocabulary_term | citation
+#           vocabulary_term -- the object is the vocabulary term that matched, so
+#                              this creates N edges, one per distinct term.
+#           citation        -- the object is another paper reached over a
+#                              citation edge.
+#
+#   subject:  <conditions>  which papers the rule starts from (ANDed).
+#   object:   <conditions>  citation only: which neighbour papers qualify (ANDed).
+#   edge:     <conditions>  citation only: conditions on the citation edge itself.
+#
+#   direction: references | citations      citation only, REQUIRED.
+#             references -- follow edges this paper CITES  (paper -> older work)
+#             citations  -- follow edges CITING this paper (paper -> newer work)
+#
+# OMIT `subject` entirely and the rule starts from every paper in the corpus.
+#
+# ---------------------------------------------------------------------------
+# CONDITIONS  (all take a list of `all:`/`any:` groups; groups are ANDed,
+#             `any:` entries are ORed, and they nest arbitrarily)
+# ---------------------------------------------------------------------------
+#   - vocab: {name: <vocab>, where: [title, abstract]}
+#       any term of vocabulary <vocab> appears in one of the listed fields.
+#       where accepts: title, abstract, venue (default: title + abstract)
+#
+#   - regex: {pattern: <string>, where: [title, abstract]}
+#       Python regex, case-insensitive, searched in the listed fields.
+#
+#   - year: {gte|lte|gt|lt|eq: <int>}     or   year: {between: [a, b]}
+#
+#   - citation_count: {gte|lte: <int>}
+#
+#   - edge: {influential: true|false, intents_any: [<str>, ...],
+#            contexts_any: <regex>}
+#       citation-edge conditions. `influential` is Semantic Scholar's own
+#       isInfluential flag; intents come from the API (background, method,
+#       result, ...). Only valid inside `edge:`.
+#
+# ---------------------------------------------------------------------------
+# EXAMPLES -- showing the shape. Delete these two; they are documentation.
+# ---------------------------------------------------------------------------
+# edge_types:
+#
+#   # Paper --USES--> Technique, one edge per matched vocabulary term.
+#   - name: EXAMPLE_uses
+#     description: The paper names a retrieval technique from the vocabulary.
+#     source: Paper
+#     target: Paper
+#     rule:
+#       target: vocabulary_term
+#       subject:
+#         all:
+#           - vocab: {name: EXAMPLE_only_delete_me, where: [title, abstract]}
+#
+#   # Paper --EXTENDS--> Paper, following citations, keeping only influential
+#   # edges to neighbours the `method` vocabulary also matches.
+#   - name: EXAMPLE_extends
+#     description: An influential citation to a neighbour that uses the method.
+#     source: Paper
+#     target: Paper
+#     rule:
+#       target: citation
+#       direction: references
+#       edge:
+#         all:
+#           - edge: {influential: true, intents_any: [method]}
+#       object:
+#         all:
+#           - vocab: {name: EXAMPLE_only_delete_me, where: [title, abstract]}
+#           - year: {between: [2018, 2021]}
+edge_types: []
+
+# ===========================================================================
+# 4. reading_order:  how a recommendation list should be ordered
+# ===========================================================================
+# analyze.py TF-IDF-matches the pasted input to shortlist candidate papers, then
+# scores each candidate by running your `signals` against it. TF-IDF only picks
+# the shortlist -- the signals are what decide the order.
+#
+# candidate_pool: <int>    how many TF-IDF candidates to score (default 25)
+# signals:                  evaluated in order; each contributes weight * strength
+#   - name:     <string> REQUIRED. Label shown in the report for each paper.
+#     weight:   <float>  REQUIRED. Contribution = weight * (number of matches).
+#     description: <string>
+#     rule: <conditions>  the same condition vocabulary as above, applied to the
+#                         candidate paper. `all:`/`any:`/`vocab`/`regex`/`year`/
+#                         `citation_count` all work; `edge:` is also allowed and
+#                         then counts matching citation edges.
+#
+# reading_order:
+#   candidate_pool: 25
+#   signals:
+#     - name: TODO
+#       weight: 1.0
+#       description: TODO
+#       rule:
+#         all:
+#           - vocab: {name: TODO, where: [title, abstract]}
+reading_order: null

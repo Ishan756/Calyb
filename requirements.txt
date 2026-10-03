@@ -1,0 +1,12 @@
+# Runtime dependencies.
+#
+# NOTE: PyYAML is the one addition to the originally allowed list
+# (requests, pandas, networkx, scikit-learn, re, json, argparse).
+# It is required because config/schema.yaml and config/vocab.yaml are YAML.
+# It is only used to *load* config -- no schema logic lives in this library.
+
+requests>=2.31
+pandas>=2.0
+networkx>=3.0
+scikit-learn>=1.3
+PyYAML>=6.0
