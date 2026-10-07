@@ -453,6 +453,17 @@ def test_reading_order_is_checked_before_input_is_read():
         assert "reading_order is not configured" in err.getvalue()
 
 
+def test_state_from_a_schema_that_omits_source_is_still_analysable():
+    """build_graph treats an omitted `source` as Paper; analyze must too."""
+    def drop_source(schema):
+        schema["node_types"][0].pop("source", None)
+
+    with built_state(drop_source) as (state_path, _tmp):
+        rc, report, _stdout, err = analyse(state_path, "kelp")
+        assert rc == 0, err
+        assert report["recommendations"], "analyze found no paper nodes"
+
+
 # --------------------------------------------------------------------------
 # runner
 # --------------------------------------------------------------------------

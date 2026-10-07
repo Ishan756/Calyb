@@ -275,8 +275,10 @@ def build_report(input_text: str, state: dict, min_similarity: float) -> dict:
     reading_order = load_reading_order(state)
     engine = bg.RuleEngine(vocab)
 
+    # An omitted `source` in schema.yaml means `Paper` (build_graph's default),
+    # so default it here too rather than silently finding no paper nodes.
     paper_type_names = {n for n, info in (state.get("node_types") or {}).items()
-                        if (info or {}).get("source") == "Paper"}
+                        if ((info or {}).get("source") or "Paper") == "Paper"}
     papers = [n for n in state["nodes"] if n.get("type") in paper_type_names]
     if not papers:
         raise AnalyzeError("the knowledge state contains no paper nodes")

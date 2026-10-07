@@ -524,7 +524,12 @@ class RuleEngine:
         value = paper.get(field)
         if "between" in body:
             low, high = body["between"]
-            ok = value is not None and low <= value <= high
+            try:
+                ok = value is not None and low <= value <= high
+            except TypeError:
+                # Mixed types (e.g. a string year) are a non-match, exactly as
+                # `compare()` treats them, not a crash mid-build.
+                ok = False
             detail = f"{low} <= {key} <= {high}"
         else:
             op = next(o for o in body if o in NUMERIC_OPS)
@@ -770,7 +775,10 @@ def export_state(graph: nx.MultiDiGraph, schema: dict, vocab: dict,
     described_nodes = {
         spec["name"]: {
             "description": spec.get("description", ""),
-            "source": spec.get("source"),
+            # The engine treats an omitted `source` as `Paper` (see build_graph),
+            # so the export must record the effective value: analyze.py reads it
+            # back to find the paper nodes.
+            "source": spec.get("source") or "Paper",
             "properties": spec.get("properties", []),
             "count": node_type_counts.get(spec["name"], 0),
         }
@@ -860,12 +868,17 @@ def main(argv: Iterable[str] | None = None) -> int:
         print(f"error: {exc}", file=sys.stderr)
         return 1
 
-    graph, warnings = build_graph(
-        cache, schema, vocab_index,
-        include_neighbors=args.include_neighbors, log=log)
+    try:
+        graph, warnings = build_graph(
+            cache, schema, vocab_index,
+            include_neighbors=args.include_neighbors, log=log)
+        state = export_state(graph, schema, vocab_doc, cache, warnings,
+                             args.include_neighbors)
+    except ConfigError as exc:
+        # Refuse with the message, not a traceback: the config is the problem.
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
 
-    state = export_state(graph, schema, vocab_doc, cache, warnings,
-                         args.include_neighbors)
     write_state(state, args.out)
 
     meta = state["metadata"]

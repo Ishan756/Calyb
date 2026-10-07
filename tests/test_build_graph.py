@@ -370,6 +370,34 @@ def test_refuses_todo_placeholders(tmp_path=None):
         _expect_config_error(lambda: bg.load_yaml(p), "unfilled placeholder")
 
 
+def test_refuses_todo_placeholders_in_vocab(tmp_path=None):
+    import tempfile
+    with tempfile.TemporaryDirectory() as td:
+        p = Path(td) / "vocab.yaml"
+        p.write_text("vocabularies:\n  - name: mine\n    terms:\n      - TODO\n")
+        _expect_config_error(lambda: bg.load_yaml(p), "unfilled placeholder")
+
+
+def test_refuses_commented_out_todo_lines():
+    """TODO inside a `#` comment is documentation, not a placeholder to fill."""
+    import tempfile
+    with tempfile.TemporaryDirectory() as td:
+        p = Path(td) / "vocab.yaml"
+        p.write_text("# - name: TODO\nvocabularies:\n  - name: mine\n"
+                     "    terms: [x]\n")
+        doc = bg.load_yaml(p)
+        assert doc["vocabularies"][0]["name"] == "mine"
+
+
+def test_year_between_tolerates_a_non_numeric_value():
+    """A string year must be a non-match, not a TypeError mid-build."""
+    engine = bg.RuleEngine({"v": {"terms": ["kelp"], "description": ""}})
+    cond = {"year": {"between": [2018, 2023]}}
+    assert engine.evaluate(cond, {"title": "x", "year": 2020}).matched
+    assert not engine.evaluate(cond, {"title": "x", "year": "2020"}).matched
+    assert not engine.evaluate(cond, {"title": "x", "year": None}).matched
+
+
 def test_refuses_empty_node_types():
     schema, vocab_doc, vocab_index, _ = load_all()
     schema["node_types"] = []
@@ -534,9 +562,73 @@ def test_cli_end_to_end(tmp_path=None):
 
 
 def test_cli_refuses_real_unfilled_config():
-    """The project's real config still has TODOs, so the CLI must refuse."""
-    rc = bg.main(["--quiet"])
+    """The project's real config is still a template, so the CLI must refuse."""
+    import contextlib
+    import io
+    err = io.StringIO()
+    with contextlib.redirect_stderr(err):
+        rc = bg.main([])
     assert rc == 1
+    assert "error:" in err.getvalue()
+
+
+def test_cli_refuses_a_config_with_active_todo(tmp_path=None):
+    """End-to-end: a TODO placeholder stops the CLI before any graph work."""
+    import contextlib
+    import io
+    import tempfile
+    with tempfile.TemporaryDirectory() as td:
+        td = Path(td)
+        schema = td / "schema.yaml"
+        schema.write_text(SCHEMA_PATH.read_text(encoding="utf-8")
+                          .replace("name: Paper", "name: TODO", 1),
+                          encoding="utf-8")
+        out = td / "knowledge_state.json"
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            rc = bg.main(["--schema", str(schema), "--vocab", str(VOCAB_PATH),
+                          "--cache", str(CACHE_PATH), "--out", str(out),
+                          "--quiet"])
+        assert rc == 1
+        message = err.getvalue()
+        assert "unfilled placeholder" in message
+        assert "TODO" in message
+        assert not out.exists(), "a refused run must not write a knowledge state"
+
+
+def test_cli_reports_a_build_time_config_error_without_a_traceback():
+    """ConfigErrors raised after loading (e.g. no Paper node type) are messages."""
+    import contextlib
+    import io
+    import tempfile
+    schema, vocab_doc, vocab_index, _ = load_all()
+    for spec in schema["node_types"]:
+        spec["source"] = "Derived"
+    with tempfile.TemporaryDirectory() as td:
+        td = Path(td)
+        bad = td / "schema.yaml"
+        bad.write_text(bg.yaml.safe_dump(schema, sort_keys=False), encoding="utf-8")
+        out = td / "knowledge_state.json"
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            rc = bg.main(["--schema", str(bad), "--vocab", str(VOCAB_PATH),
+                          "--cache", str(CACHE_PATH), "--out", str(out),
+                          "--quiet"])
+        assert rc == 1
+        message = err.getvalue()
+        assert message.startswith("error: ")
+        assert "Traceback" not in message
+        assert "nowhere to put the corpus papers" in message
+        assert not out.exists()
+
+
+def test_export_records_the_effective_source_when_it_is_omitted():
+    """`source` defaults to Paper in build_graph, so the export must say so."""
+    schema, vocab_doc, vocab_index, cache = load_all()
+    schema["node_types"][0].pop("source", None)
+    graph, warnings = bg.build_graph(cache, schema, vocab_index)
+    state = bg.export_state(graph, schema, vocab_doc, cache, warnings, False)
+    assert state["node_types"]["Paper"]["source"] == "Paper"
 
 
 # ==========================================================================

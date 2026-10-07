@@ -199,7 +199,7 @@ def run_fetch(tmp_path: Path, *cli_args, **config_overrides):
 def test_fetch_cold_start():
     MockS2Handler.calls.clear()
     with TempDir() as td:
-        rc, cache, _ = run_fetch(Path(td))
+        rc, cache, _ = run_fetch(Path(td), max_edges_per_paper=500)
         assert rc == 0
         assert len(cache["papers"]) == CORPUS_SIZE
         assert cache["meta"]["source"] == "semantic-scholar-graph-api"
@@ -232,8 +232,8 @@ def test_fetch_is_idempotent():
 
 def test_fetch_refresh_keeps_edges():
     with TempDir() as td:
-        run_fetch(Path(td))
-        rc, cache, _ = run_fetch(Path(td), "--refresh")
+        run_fetch(Path(td), max_edges_per_paper=500)
+        rc, cache, _ = run_fetch(Path(td), "--refresh", max_edges_per_paper=500)
         assert rc == 0
         assert len(cache["papers"]) == CORPUS_SIZE
         assert sum(len(p["references"]) for p in cache["papers"].values()) == TOTAL_REFS
@@ -302,14 +302,26 @@ def test_cap_larger_than_available_is_not_truncated():
         assert cache["meta"]["edges_truncated_count"] == 0
 
 
-def test_default_cap_is_500():
-    assert fp.DEFAULT_MAX_EDGES_PER_PAPER == 500
+def test_shipped_default_caps_at_100_and_records_it():
+    """With no max_edges_per_paper in the config, the default cap applies."""
+    with TempDir() as td:
+        rc, cache, _ = run_fetch(Path(td), "--reset")
+        assert rc == 0
+        hub = cache["papers"][HUB]
+        assert len(hub["citations"]) == fp.DEFAULT_MAX_EDGES_PER_PAPER == 100
+        assert cache["meta"]["max_edges_per_paper"] == 100
+        assert cache["meta"]["edges_truncated_count"] == 1
+        assert cache["meta"]["edges_truncated"][0]["paperId"] == HUB
+
+
+def test_default_cap_is_100():
+    assert fp.DEFAULT_MAX_EDGES_PER_PAPER == 100
 
 
 # --- --validate ------------------------------------------------------------
 def test_validate_reports_cache(tmp_path=None):
     with TempDir() as td:
-        rc, cache, out = run_fetch(Path(td), "--reset")
+        rc, cache, out = run_fetch(Path(td), "--reset", max_edges_per_paper=500)
         assert rc == 0
 
         rc = fp.main(["--out", str(out), "--validate"])
