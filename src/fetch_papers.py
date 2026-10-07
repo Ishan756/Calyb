@@ -68,7 +68,7 @@ MAX_BATCH_IDS = 500
 # but a highly cited paper can have tens of thousands of citation edges, so we
 # page until we hit fetch.max_edges_per_paper (default 500).
 EDGE_PAGE_SIZE = 100
-DEFAULT_MAX_EDGES_PER_PAPER = 500
+DEFAULT_MAX_EDGES_PER_PAPER = 100
 
 
 # --------------------------------------------------------------------------

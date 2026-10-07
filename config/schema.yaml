@@ -20,8 +20,8 @@ fetch:
   num_papers: 70
   year_from: 2020
   year_to: 2025
-  request_delay_seconds: 1.2
-  max_retries: 6               # retries for 429 / 5xx / connection errors
+  request_delay_seconds: 2.0
+  max_retries: 10               # retries for 429 / 5xx / connection errors
   fetch_edges: true            # false skips citations+references (much faster)
 
 # ===========================================================================
